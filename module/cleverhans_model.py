@@ -28,7 +28,9 @@ class AttackModel(CleverhansModel):
     def __init__(self, batch_shape=None, output_size=None, name=''):
         super(AttackModel, self).__init__()
         self.graph = tf.Graph()
-        self.sess =  tf.Session(graph=self.graph, config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True))
+        config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)
+        config.gpu_options.allow_growth = True
+        self.sess =  tf.Session(graph=self.graph, config=config)
         # self.sess =  tf.Session(graph=self.graph)
         if batch_shape:
             with self.sess.as_default():
