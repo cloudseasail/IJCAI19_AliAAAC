@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 from tensorflow.contrib.slim.python.slim.nets import inception_v1, resnet_v1, vgg
 # from keras.applications import inception_v3, resnet50
 from tensorflow.contrib import slim
@@ -6,9 +7,25 @@ from tensorflow.contrib.layers.python.layers import layers as layers_lib
 
 def Inception_preprocess(imgs, undo=False):
     if (undo):
-        out_imgs = (((imgs + 1.0) * 0.5) * 255.0).astype(np.uint8)
+        out_imgs = (((imgs + 1.0) * 0.5) * 255.0)
     else:
         out_imgs = (imgs / 255.0) * 2.0 - 1.0
+    return out_imgs
+
+def Vgg_preprocess_np(imgs, undo=False):
+    _R_MEAN = 123.68
+    _G_MEAN = 116.78
+    _B_MEAN = 103.94
+    means= [_R_MEAN, _G_MEAN, _B_MEAN]
+    channels = np.split(imgs, 3, axis=3)
+    for i in range(3):
+        if (undo):
+            channels[i] += means[i]
+        else:
+            channels[i] -= means[i]
+    out_imgs = np.concatenate(channels, axis=3)
+    # if (undo):
+    #     out_imgs = out_imgs.astype(np.uint8)
     return out_imgs
 
 def Vgg_preprocess(imgs, undo=False):
@@ -28,24 +45,28 @@ def Vgg_preprocess(imgs, undo=False):
     return out_imgs
 
 class OfficialModel():
+    root = '../official_data/'
     model = {
         'inception_v1': {
             'arg_scope': inception_v1.inception_v1_arg_scope,
             'graph': inception_v1.inception_v1,
-            'checkpoint_dir': 'model/inception_v1/inception_v1.ckpt',
-            'preprocess': Inception_preprocess
+            'checkpoint_dir': root + 'model/inception_v1/inception_v1.ckpt',
+            'preprocess': Inception_preprocess,
+            'min_max': (-1.0, 1.0)
         },
         'resnetv1_50': {
             'arg_scope': resnet_v1.resnet_arg_scope,
             'graph': resnet_v1.resnet_v1_50,
-            'checkpoint_dir': 'model/resnet_v1_50/model.ckpt-49800',
-            'preprocess': Vgg_preprocess
+            'checkpoint_dir': root + 'model/resnet_v1_50/model.ckpt-49800',
+            'preprocess': Vgg_preprocess_np,
+            'min_max': (0, 255)
         },
         'vgg_16': {
             'arg_scope': vgg.vgg_arg_scope,
             'graph': vgg.vgg_16,
-            'checkpoint_dir': '../official_data/model/vgg_16/vgg_16.ckpt',
-            'preprocess': Vgg_preprocess
+            'checkpoint_dir': root + 'model/vgg_16/vgg_16.ckpt',
+            'preprocess': Vgg_preprocess_np,
+            'min_max': (0, 255)
         }
     }
 

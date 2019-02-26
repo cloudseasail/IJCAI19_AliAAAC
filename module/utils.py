@@ -8,7 +8,7 @@ def make_one_hot_array(data, n):
 def make_one_hot(data, n):
     return (np.arange(n)==data).astype(np.integer)
 def calc_l2(x, xadv):
-    diff = im.reshape((-1, 3)) - attack_im.reshape((-1, 3))
+    diff = x.reshape((-1, 3)) - xadv.reshape((-1, 3))
     distance = np.mean(np.sqrt(np.sum((diff ** 2), axis=1)))
     return distance
 
@@ -57,14 +57,19 @@ class Profile():
 
 import matplotlib.pyplot as plt
 
-def plot_images(X, Xadv):
+def plot_images(X, Xadv, s=0, n=5):
+    X_ = X.astype(np.uint8)
+    Xadv_ = Xadv.astype(np.uint8)
     plt.figure(figsize=(10,10))
-    plt.subplot(331)
-    fig=plt.imshow(X)
-    plt.subplot(332)
-    fig=plt.imshow(Xadv)
-    plt.subplot(333)
-    fig=plt.imshow(1 + Xadv-X)
-    fig.axes.get_xaxis().set_visible(False)
-    fig.axes.get_yaxis().set_visible(False)
+    for i in range(n):
+        ii = 0+i
+        plt.subplot(n,3, i*3+1)
+        fig=plt.imshow(X_[ii])
+        plt.subplot(n,3, i*3 + 2)
+        fig=plt.imshow(Xadv_[ii])
+        plt.subplot(n,3, i*3 + 3)
+        diff = -np.abs(X_[ii].astype(np.int16) -  Xadv_[ii].astype(np.int16)) + 255
+        fig=plt.imshow(diff.astype(np.uint8))
+        fig.axes.get_xaxis().set_visible(False)
+        fig.axes.get_yaxis().set_visible(False)
     plt.show()

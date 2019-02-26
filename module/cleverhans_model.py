@@ -63,6 +63,8 @@ class AttackModel(CleverhansModel):
         saver.restore(self.sess, checkpoint_path)
     def preprocess_input(self, imgs):
         return self._model.preprocess(imgs)
+    def undo_preprocess(self, imgs):
+        return self._model.undo_preprocess(imgs)
     def predict(self, X, Y, TOP_K=1):
         # X = self.preprocess_input(X)
         with self.sess.as_default():
@@ -85,8 +87,8 @@ class AttackModel(CleverhansModel):
         return xadv, ypred, accuracy
 
     def L2(self, X, Xadv):
-        X_ = self._model.undo_preprocess(X)
-        Xadv_ = self._model.undo_preprocess(Xadv)
+        X_ = self._model.undo_preprocess(X.copy())
+        Xadv_ = self._model.undo_preprocess(Xadv.copy())
         return calc_l2(X, Xadv)
         
 
