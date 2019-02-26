@@ -1,0 +1,14 @@
+logs/
+dist/
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+downloads/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# C extensions
+*.so
