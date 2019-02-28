@@ -13,12 +13,13 @@ def calc_l2(x, xadv):
     return distance
 
 def dev_data_generater(input_dir='../official_data/dev_data/', batch_shape=None, label_shape=(None,110)):
-    images = np.zeros(batch_shape)
-    labels = np.zeros(label_shape, dtype=np.int32)
-    filenames = []
-    idx = 0
     batch_size = batch_shape[0]
     input_size = batch_shape[2]
+    label_size = label_shape[1]
+    images = np.zeros(batch_shape)
+    labels = np.zeros((batch_size, label_size), dtype=np.int32)
+    filenames = []
+    idx = 0
     with open(os.path.join(input_dir, 'dev.csv')) as f:
         reader = csv.DictReader(f)
         for row in reader:
@@ -26,7 +27,7 @@ def dev_data_generater(input_dir='../official_data/dev_data/', batch_shape=None,
             img = image.load_img(filepath, target_size=(input_size, input_size))
             img = image.img_to_array(img)
             images[idx] = img
-            labels[idx] = make_one_hot(int(row['trueLabel']), label_shape[1])
+            labels[idx] = make_one_hot(int(row['trueLabel']), label_size)
             filenames.append(os.path.basename(filepath))
             idx += 1
             if idx == batch_size:

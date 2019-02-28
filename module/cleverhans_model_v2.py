@@ -7,34 +7,37 @@ from .utils import *
 class CleverhansModel(Model):
     """Model class for CleverHans library."""
 
-    def __init__(self):
-        super(CleverhansModel, self).__init__(needs_dummy_fprop=True)
+    def __init__(self, nb_classes, model=None):
+        super(CleverhansModel, self).__init__(nb_classes=110)
         self.built = False
-        self.end_points = None
+        end_points = None
+        self._model = model
 
     def fprop(self, x, **kwargs):
-        if self.end_points is None:
-            self.load_model()
-        return {self.O_LOGITS: self.end_points['Logits'],
-              self.O_PROBS: self.end_points['Predictions'].op.inputs[0]}
+        reuse = True if self.built else None
+        end_points = self._model.load_model(x, self.nb_classes, reuse=reuse)
+        self.built = True
+        return {self.O_LOGITS: end_points['Logits'],
+              self.O_PROBS: end_points['Predictions'].op.inputs[0]}
 
 
         
 
-class AttackModel(CleverhansModel):
+class AttackModel():
     def __init__(self, batch_shape=None, output_size=None, name=''):
-        super(AttackModel, self).__init__()
         self.graph = tf.Graph()
+        self.weight_loaded = False
         config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)
         config.gpu_options.allow_growth = True
         self.sess =  tf.Session(graph=self.graph, config=config)
-        # self.sess =  tf.Session(graph=self.graph)
         if batch_shape:
             with self.sess.as_default():
                 with self.sess.graph.as_default():
                     x = tf.placeholder(dtype=tf.float32, shape=(None, batch_shape[1],batch_shape[2],batch_shape[3]), name='input')
                     y = tf.placeholder(dtype=tf.float32, shape=(None, output_size), name='output')
                     self.setting(x,y,name)
+                    self._model = OfficialModel(name)
+                    self.target_model = CleverhansModel(self.nb_classes, self._model)
     def setting(self, x, y, name=''):
         self.x = x
         self.y = y
@@ -47,20 +50,18 @@ class AttackModel(CleverhansModel):
         if name:
             self.name = name
         self._model = OfficialModel(name)
-        with self.sess.as_default():
-            with self.sess.graph.as_default():
-                # self.load_model()
-                self.load_weight()
-    def load_model(self):
-        self.end_points = self._model.load_model(self.x, self.nb_classes)
-        self.op_logits = self.get_logits()
-        self.op_loss = tf.reduce_mean(tf.losses.softmax_cross_entropy(logits=self.op_logits, onehot_labels=self.y))
-        return 
-    def load_weight(self, checkpoint_path=''):
-        saver = tf.train.Saver(slim.get_model_variables())
-        if checkpoint_path == '':
-            checkpoint_path = self._model.get_weight()
-        saver.restore(self.sess, checkpoint_path)
+        # with self.sess.as_default():
+        #     with self.sess.graph.as_default():
+        #         self.load_model()
+        #         self.load_weight()
+
+    def _load_weight(self, checkpoint_path=''):
+        if self.weight_loaded == False:
+            saver = tf.train.Saver(slim.get_model_variables())
+            if checkpoint_path == '':
+                checkpoint_path = self._model.get_weight()
+            saver.restore(self.sess, checkpoint_path)
+            self.weight_loaded = True
     def preprocess_input(self, imgs):
         return self._model.preprocess(imgs)
     def undo_preprocess(self, imgs):
@@ -69,20 +70,23 @@ class AttackModel(CleverhansModel):
         # X = self.preprocess_input(X)
         with self.sess.as_default():
             with self.sess.graph.as_default():
-                self.op_accuracy = tf.reduce_mean(tf.cast(tf.nn.in_top_k(self.op_logits, tf.argmax(self.y, 1), TOP_K), tf.float32))
-                op_ypred = tf.argmax(self.op_logits, 1)
-                ypred, accuracy= self.sess.run([op_ypred, self.op_accuracy], feed_dict={self.x: X, self.y: Y})
-                #out, end_points2, accuracy= sess.run([self.op_logits, self.op_end_points, op_accuracy], feed_dict={self.imgs_holder: X, self.labels_holder: Y})
+                op_logits = self.target_model.get_logits(self.x)
+                op_accuracy = tf.reduce_mean(tf.cast(tf.nn.in_top_k(op_logits, tf.argmax(self.y, 1), TOP_K), tf.float32))
+                op_ypred = tf.argmax(op_logits, 1)
+                self._load_weight()
+                ypred, accuracy= self.sess.run([op_ypred, op_accuracy], feed_dict={self.x: X, self.y: Y})
+                #out, end_points2, accuracy= sess.run([op_logits, self.op_end_points, op_accuracy], feed_dict={self.imgs_holder: X, self.labels_holder: Y})
         return ypred, accuracy
 
     def _attack(self, X, Y, Method, params):
         with self.sess.as_default():
             with self.sess.graph.as_default():
-                attacker = Method(self, sess=self.sess)
+                attacker = Method(self.target_model, sess=self.sess)
                 op_xadv = attacker.generate(self.x, **params)
+                self._load_weight()
                 xadv = self.sess.run(op_xadv, feed_dict={self.x: X, self.y: Y})
-                # op_accuracy = tf.reduce_mean(tf.cast(tf.nn.in_top_k(self.op_logits, tf.argmax(self.y, 1), 1), tf.float32))
-                # op_ypred = tf.argmax(self.op_logits, 1)
+                # op_accuracy = tf.reduce_mean(tf.cast(tf.nn.in_top_k(op_logits, tf.argmax(self.y, 1), 1), tf.float32))
+                # op_ypred = tf.argmax(op_logits, 1)
                 # ypred, accuracy= self.sess.run([op_ypred, op_accuracy], feed_dict={self.x: xadv, self.y: Y})
         return xadv
 
@@ -98,6 +102,10 @@ class Attacker(AttackModel):
             return self._preprocess_xception(X, undo)
         else:
             pass
+    # def load(self):
+    #     with self.sess.as_default():
+    #         with self.sess.graph.as_default():
+    #             self._load_weight()
     def predict(self, X, Y):
         p=Profile(self.name+' predict')
         X_ = self.preprocess_input(X)

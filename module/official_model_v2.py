@@ -17,7 +17,8 @@ def Vgg_preprocess_np(imgs, undo=False):
     _G_MEAN = 116.78
     _B_MEAN = 103.94
     means= [_R_MEAN, _G_MEAN, _B_MEAN]
-    channels = np.split(imgs, 3, axis=3)
+    out_imgs = imgs.copy()
+    channels = np.split(out_imgs, 3, axis=3)
     for i in range(3):
         if (undo):
             channels[i] += means[i]
@@ -75,7 +76,10 @@ class OfficialModel():
         self._model = OfficialModel.model[name]
     def load_model(self, x, nb_classes, reuse=None):
         with slim.arg_scope(self._model['arg_scope']()):
-            logits, end_points = self._model['graph'](x, num_classes=nb_classes,is_training=False)
+            if self.name == 'vgg_16':
+                logits, end_points = self._model['graph'](x, num_classes=nb_classes,is_training=False)
+            else:
+                logits, end_points = self._model['graph'](x, num_classes=nb_classes,is_training=False,reuse=reuse)
             if 'Logits' not in end_points:
                 end_points['Logits'] = logits
             if (len(end_points['Logits'].shape) == 4):
