@@ -75,7 +75,7 @@ class AttackModel():
                 op_ypred = tf.argmax(op_logits, 1)
                 self._load_weight()
                 ypred, accuracy= self.sess.run([op_ypred, op_accuracy], feed_dict={self.x: X, self.y: Y})
-                #out, end_points2, accuracy= sess.run([op_logits, self.op_end_points, op_accuracy], feed_dict={self.imgs_holder: X, self.labels_holder: Y})
+                ypred, accuracy, self.logits= self.sess.run([op_ypred, op_accuracy, op_logits], feed_dict={self.x: X, self.y: Y})
         return ypred, accuracy
 
     def _attack(self, X, Y, Method, params):
@@ -100,8 +100,8 @@ class Attacker(AttackModel):
             return self._preprocess_default(X, undo)
         elif self.preprocess == '(-1,1)':
             return self._preprocess_xception(X, undo)
-        else:
-            pass
+        elif self.preprocess == 'vgg':
+            return self._preprocess_vgg(X, undo)
     # def load(self):
     #     with self.sess.as_default():
     #         with self.sess.graph.as_default():
@@ -119,8 +119,14 @@ class Attacker(AttackModel):
         self.preprocess = preprocess
         p=Profile(self.name+' attack')
         X_, _min, _max = self._attack_preprocess(X)
+        if "ep_ratio" in params:
+            params['eps'] = (_max-_min)*params['ep_ratio']
+            params['eps_iter'] = params['eps']/10
+        if "nb_iter" in params: 
+            params['eps_iter'] = params['eps']/params['nb_iter']
         params['clip_min'] = _min
         params['clip_max'] = _max
+        print(params)
         Xadv = self._attack(X_, Y, Method, params)
         # X,_,_ = self._attack_preprocess(X_, undo=True)
         Xadv,_,_ = self._attack_preprocess(Xadv, undo=True)
@@ -140,4 +146,10 @@ class Attacker(AttackModel):
         (_min, _max) = (-1.0, 1.0)
         return X, _min, _max
     def _preprocess_vgg(self, X, undo=False):
-        pass
+        _MEAN = 115
+        if (undo):
+            X_ = X + _MEAN
+        else:
+            X_ = X - _MEAN
+        (_min, _max) = self._model._model['min_max']
+        return X_, _min-_MEAN, _max-_MEAN
