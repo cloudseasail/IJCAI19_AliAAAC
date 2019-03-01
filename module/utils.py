@@ -34,10 +34,11 @@ def dev_data_generater(input_dir='../official_data/dev_data/', batch_shape=None,
                 yield filenames, images, labels
                 filenames = []
                 images = np.zeros(batch_shape)
-                labels = np.zeros(label_shape, dtype=np.int32)
+                labels = np.zeros((batch_size, label_size), dtype=np.int32)
                 idx = 0
         if idx > 0:
-            yield filenames, images, labels
+            size = len(filenames)
+            yield filenames, images[:size], labels[:size]
 
 
 import time

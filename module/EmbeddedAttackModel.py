@@ -28,7 +28,7 @@ class EmbeddedAttackModel(CleverhansModel):
         self.models = []
         self.batch_shape = batch_shape
         with self.sess.as_default():
-            with self.sess.graph.as_default():
+            with self.sess.graph.as_default():   
                 self.op_x = tf.placeholder(dtype=tf.float32, shape=(None, self.batch_shape[1],self.batch_shape[2],self.batch_shape[3]), name='input')
                 self.op_y = tf.placeholder(dtype=tf.float32, shape=(None, self.nb_classes), name='output')
     def add_model(self, models=[]):
@@ -96,12 +96,26 @@ class TargetModel(OfficialModel):
         config.gpu_options.allow_growth = True
         self.sess =  tf.Session(graph=graph, config=config)
         self.models = []
+        self.batch_shape = batch_shape
         if batch_shape:
             with self.sess.as_default():
                 with self.sess.graph.as_default():
                     self.x = tf.placeholder(dtype=tf.float32, shape=(None, batch_shape[1],batch_shape[2],batch_shape[3]), name='input')
                     self.y = tf.placeholder(dtype=tf.float32, shape=(None, output_size), name='output')
-        
+    def predict_generate(self, TOP_K=1):
+        with self.sess.as_default():
+            with self.sess.graph.as_default():
+                x = self.predict_preprocess(self.x)
+                op_logits = self.get_endpoints(x, self.nb_classes)['Logits']
+                self.op_accuracy = tf.reduce_mean(tf.cast(tf.nn.in_top_k(op_logits, tf.argmax(self.y, 1), TOP_K), tf.float32))
+                self.op_ypred = tf.argmax(op_logits, 1)
+                self.load_weight()
+        return self.op_ypred
+    def predict_batch(self, X, Y):
+        with self.sess.as_default():
+            with self.sess.graph.as_default():
+                ypred, accuracy= self.sess.run([self.op_ypred, self.op_accuracy], feed_dict={self.x: X, self.y: Y})
+        return ypred, accuracy
     def predict(self, X, Y, TOP_K=1):
         p=Profile(self.name+' predict')
         with self.sess.as_default():
@@ -133,3 +147,48 @@ def AttackHelper(A, X, Y, M, param):
     for m in A.models:
         m.predict(Xadv, Y)
     return Xadv
+
+def AttackBatch(A, gen, M, param, max_iter=None):
+    # batch_size = A.batch_shape[0]
+    batch_iter = 0
+    total_l2 = 0
+    total_size = 0
+    A.attack_generate(M, param)
+    p=Profile('Attack ')
+    for _,X,Y in gen:
+        Xadv = A.attack_batch(X, Y)
+        batch_iter +=1
+        l2 = calc_l2(X, Xadv)
+        batch_size =  X.shape[0]
+        total_l2 += (l2*batch_size)
+        total_size += batch_size
+        if (max_iter):
+            if batch_iter>=max_iter:
+                break
+    p.stop()
+    total_l2 = total_l2/total_size
+    print("batchs {0} L2 {1}".format(batch_iter, total_l2))
+    return Xadv
+
+
+def PredictBatch(T, gen):
+    # batch_size = T.batch_shape[0]
+    batch_iter = 0
+    total_correct = 0
+    total_size = 0
+    T.predict_generate()
+    p=Profile('Predict ')
+    for _,X,Y in gen:
+        ypred, accuracy = T.predict_batch(X, Y)
+        batch_iter +=1
+        batch_size =  X.shape[0]
+        total_correct += (accuracy*batch_size)
+        total_size += batch_size
+        # print(batch_size, total_correct, total_size)
+    p.stop()
+    total_accuracy = total_correct/total_size
+    print("batchs {0} Accuracy {1}".format(batch_iter, total_accuracy))
+    with T.sess.as_default():
+        with T.sess.graph.as_default():
+            tf.reset_default_graph()
+    return total_accuracy
