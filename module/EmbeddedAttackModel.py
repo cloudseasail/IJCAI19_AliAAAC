@@ -122,10 +122,9 @@ class TargetModel(OfficialModel):
         return logits
     def get_weight_path(self):
         return None
-    def predict_preprocess(self, imgs):
-        return self.preprocess(imgs)
 
-def AttackHelper(A, X, Y, M, param ):
+
+def AttackHelper(A, X, Y, M, param):
     p=Profile('Attack')
     A.attack_generate(M, param)
     Xadv = A.attack_batch(X, Y)

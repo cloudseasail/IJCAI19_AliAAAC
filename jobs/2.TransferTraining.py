@@ -14,7 +14,7 @@ from datetime import datetime
 
 IMAGE_SIZE = 299
 CLASS_SIZE = 110
-BATCH_SIZE = 128
+BATCH_SIZE = 8
 VALIDATION_SPLIT = 0.05
 
 TRAIN_SIZE = int(103350 * (1-VALIDATION_SPLIT))
@@ -27,7 +27,7 @@ STEPS_PRE_EPOCH = TRAIN_SIZE//BATCH_SIZE
 
 print('STEPS_PRE_EPOCH {0}, BATCH_SIZE {1} '.format(STEPS_PRE_EPOCH, BATCH_SIZE))
 
-train_dir = '../official_data/IJCAI_2019_AAAC_train'
+train_dir = '../../official_data/IJCAI_2019_AAAC_train'
 save_to_dir = None
 
 # 載入權重
