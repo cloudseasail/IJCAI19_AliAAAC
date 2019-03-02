@@ -83,13 +83,14 @@ class TargetModel(OfficialModel):
         self.y = tf.placeholder(dtype=tf.float32, shape=(None, self.nb_classes), name='output')
         x = self.predict_preprocess(self.x)
         op_logits = self.get_endpoints(x, self.nb_classes)['Logits']
-        self.op_accuracy = tf.reduce_mean(tf.cast(tf.nn.in_top_k(op_logits, tf.argmax(self.y, 1), TOP_K), tf.float32))
+        self.op_topk = tf.nn.in_top_k(op_logits, tf.argmax(self.y, 1), TOP_K)
+        self.op_accuracy = tf.reduce_mean(tf.cast(self.op_topk, tf.float32))
         self.op_ypred = tf.argmax(op_logits, 1)
         self.load_weight()
         return self.op_ypred
     def predict_batch(self, X, Y):
-        ypred, accuracy= self.sess.run([self.op_ypred, self.op_accuracy], feed_dict={self.x: X, self.y: Y})
-        return ypred, accuracy
+        ypred, topk, accuracy= self.sess.run([self.op_ypred, self.op_topk, self.op_accuracy], feed_dict={self.x: X, self.y: Y})
+        return ypred, topk, accuracy
     def get_attack_logits(self, x):
         xp = self.attack_preprocess(x)
         logits = self.get_endpoints(xp,self.nb_classes)['Logits']
@@ -142,7 +143,7 @@ def PredictBatch(T, gen):
     with tf.Session(config=config) as sess:
         T.predict_generate(sess)
         for _,X,Y in gen:
-            ypred, accuracy = T.predict_batch(X, Y)
+            ypred, topk, accuracy = T.predict_batch(X, Y)
             batch_iter +=1
             batch_size =  X.shape[0]
             total_correct += (accuracy*batch_size)

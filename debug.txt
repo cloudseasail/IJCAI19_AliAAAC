@@ -4,3 +4,5 @@
 
 1. Condition x >= y did not hold element-wise:
     X input range is not correct, check preprocess.
+2. Dst tensor is not initialized
+    GPU memory is full

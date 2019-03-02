@@ -87,3 +87,22 @@ def plot_images(X, Xadv, s=0, n=5):
         fig.axes.get_xaxis().set_visible(False)
         fig.axes.get_yaxis().set_visible(False)
     plt.show()
+
+
+from keras_preprocessing.image import array_to_img
+class ImageSaver():
+    def __init__(self, save_dir, data_format='channels_last', save_format='jpg', save_prefix='', scale=False):
+        self.save_dir = save_dir
+        self.data_format = data_format
+        self.save_format = save_format
+        self.save_prefix = save_prefix
+        self.scale = scale
+    def save_array(self, fname, image_array):
+        if (fname[-4:] == '.jpg') or (fname[-4:] == '.png'):
+            fname = fname[:-4]
+        img = array_to_img(image_array, self.data_format, scale=self.scale)
+        fname = '{fname}_{prefix}.{format}'.format(
+            prefix=self.save_prefix,
+            fname=fname,
+            format=self.save_format)
+        img.save(os.path.join(self.save_dir, fname))
