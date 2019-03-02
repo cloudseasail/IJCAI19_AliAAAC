@@ -11,6 +11,18 @@ def calc_l2(x, xadv):
     diff = x.reshape((-1, 3)) - xadv.reshape((-1, 3))
     distance = np.mean(np.sqrt(np.sum((diff ** 2), axis=1)))
     return distance
+def mem_data_generater(X,Y, batch_shape=None, label_shape=(None,110)):
+    batch_size = batch_shape[0]
+    input_size = batch_shape[2]
+    label_size = label_shape[1]
+    idx = 0
+    while (True):
+        s = idx*batch_size
+        e = (idx+1)*batch_size
+        if len(X[s:e]) == 0:
+            break
+        idx = idx+1
+        yield None, X[s:e], Y[s:e]
 
 def dev_data_generater(input_dir='../official_data/dev_data/', batch_shape=None, label_shape=(None,110)):
     batch_size = batch_shape[0]

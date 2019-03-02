@@ -11,3 +11,14 @@ def get_flat_shape(grad):
     for i in range(1,len(grad.get_shape().as_list())):
         t= tf.expand_dims(t,i)
     return tf.shape(t)
+
+def get_gpu_status():
+    with tf.Session() as sess:
+        r = sess.run(tf.contrib.memory_stats.BytesInUse())
+    return r
+
+def gpu_session_config():
+    config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True, 
+            intra_op_parallelism_threads=0, inter_op_parallelism_threads=0)
+    config.gpu_options.allow_growth = True
+    return config
