@@ -1,6 +1,9 @@
 logs/
 dist/
 ~*.xlsx
+*.h5
+
+
 
 __pycache__/
 *.py[cod]

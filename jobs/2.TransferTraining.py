@@ -4,7 +4,6 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 from keras.applications.resnet50 import ResNet50
 from keras.preprocessing import image
 from keras.applications.resnet50 import preprocess_input
-from keras.applications.resnet50 import decode_predictions
 
 from keras import models
 from keras import layers
@@ -75,14 +74,10 @@ validation_generator = train_datagen.flow_from_directory(
         class_mode='categorical')
 
 def lr_schedule(epoch):
-    lr = 1e-2
-    if epoch > 150:
-        lr *= 0.5e-3
-    elif epoch > 100:
-        lr *= 1e-3
-    elif epoch > 50:
-        lr *= 1e-2
-    elif epoch > 10:
+    lr = 1e-4
+    if epoch > 10:
+        lr *= 1e-1
+    elif epoch > 3:
         lr *= 1e-1
     print('Learning rate: ', lr)
     return lr

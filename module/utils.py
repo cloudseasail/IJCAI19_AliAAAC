@@ -106,3 +106,14 @@ class ImageSaver():
             fname=fname,
             format=self.save_format)
         img.save(os.path.join(self.save_dir, fname))
+
+def remove_with_name(path, pattern):
+    count = 0
+    for root, dirs, files in os.walk(path):
+        for name in files: 
+            pos = name.find(pattern)
+            if (pos == -1):
+                continue
+            os.remove(os.path.join(root,name))
+            count +=1
+    return count

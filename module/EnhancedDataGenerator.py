@@ -45,23 +45,37 @@ class NamedDataGenerator(ImageDataGenerator):
             interpolation=interpolation)
 
 # DefenseDataGenerator
-
+class DefenseDataFlow():
+    def __init__(self, flow, gen):
+        self.flow = flow
+        self.gen = gen
+        pass
+    def __len__(self):
+        return len(self.flow)
+    def __next__(self, *args, **kwargs):
+        return self.next(*args, **kwargs)
+    def next(self):
+        X,Y = next(self.flow)
+        X = self.gen._apply(X)
+        return X,Y
 class DefenseDataGenerator(ImageDataGenerator):
     def __init__(self, msb_max=None, msb_rate=0.1, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.msb_max = msb_max
         self.msb_rate = msb_rate
-        self.direc_flow = None
+        self.preprocessing_function = None
+        if "preprocessing_function" in kwargs:
+            self.preprocessing_function = kwargs["preprocessing_function"]
+            del kwargs["preprocessing_function"]
+        # print(kwargs)
     def flow_from_directory(self, *args, **kwargs):
-        self.direc_flow = super().flow_from_directory(*args, **kwargs)
-        return self
-    def __len__(self):
-        return len(self.direc_flow)
-    def __next__(self, *args, **kwargs):
-        return self.next(*args, **kwargs)
-    def next(self):
-        X,Y = next(self.direc_flow)
-        return self._msb_apply(X),Y
+        flow = super().flow_from_directory(*args, **kwargs)
+        return DefenseDataFlow(flow, self)
+    def _apply(self, x):
+        x = self._msb_apply(x)
+        if self.preprocessing_function:
+            x = self.preprocessing_function(x)
+        return x
     def _msb_apply(self, x):
         if self.msb_max is not None:
             seed = np.random.randint(100)
@@ -98,38 +112,42 @@ class MultiDataGenerator():
                 self.sources[s]['generator'] = DefenseDataGenerator(msb_max=self.msb_max, msb_rate=self.msb_rate,*args, **kwargs)
     def get_train_flow(self, target_size, batch_size):
         shuffle_status = ""
+        flows = self._create_flow("training", target_size, batch_size)
         for s in self.source_names:
             if s in self.sources:
-                directory = self.sources[s]['directory']
-                self.sources[s]['train_flow'] = self.sources[s]['generator'].flow_from_directory(
-                    directory, class_mode='categorical', shuffle=True, 
-                    target_size=target_size, batch_size = batch_size, subset='training'
-                )
-                shuffle_rate = len(self.sources[s]['train_flow'])/self.sources[s]['shuffle_num']
+                self.sources[s]['train_flow'] = flows[s]
+                shuffle_rate = 100/ (len(self.sources[s]['train_flow'])/self.sources[s]['shuffle_num'])
                 # print(len(self.sources[s]['train_flow']), self.sources[s]['shuffle_num'])
                 shuffle_status +=  "%s: %.1f, "%(s, shuffle_rate)
         print("shuffle_status: ", shuffle_status)
-        return self._train_flow()
-    def _train_flow(self):
-        while True:
-            for s in self.source_names:
-                if s in self.sources:
-                    shuffle_num = self.sources[s]['shuffle_num']
-                    for i in range(shuffle_num):
-                        yield next(self.sources[s]['train_flow'])
+        return self._run_flow(flows)
     def get_valid_flow(self, target_size, batch_size):
+        flows = self._create_flow("validation", target_size, batch_size)
+        for s in self.source_names:
+            if s in self.sources:
+                self.sources[s]['valid_flow'] = flows[s]
+        return self._run_flow(flows)
+    def _create_flow(self, subset, target_size, batch_size):
+        flows = {}
         for s in self.source_names:
             if s in self.sources:
                 directory = self.sources[s]['directory']
-                self.sources[s]['valid_flow'] = self.sources[s]['generator'].flow_from_directory(
+                flows[s] = self.sources[s]['generator'].flow_from_directory(
                     directory, class_mode='categorical', shuffle=True, 
-                    target_size=target_size, batch_size = batch_size, subset='validation'
+                    target_size=target_size, batch_size = batch_size, subset=subset
                 )
-        return self._valid_flow()
-    def _valid_flow(self):
+        return flows
+    def _run_flow(self, flows):
         while True:
             for s in self.source_names:
                 if s in self.sources:
                     shuffle_num = self.sources[s]['shuffle_num']
                     for i in range(shuffle_num):
-                        yield next(self.sources[s]['valid_flow'])
+                        yield next(flows[s])
+    def __len__(self):
+        _len = 0
+        for s in self.source_names:
+            if s in self.sources:
+                _len += len(self.sources[s]['train_flow'])
+                _len += len(self.sources[s]['valid_flow'])
+        return _len

@@ -81,15 +81,15 @@ def generate_wrapper(M, T, epr,n, max_sample_size=1000):
     print(prefix + " last L2:", calc_l2(X,Xadv))
     return X,Xadv
 
-gen_size = 100
+gen_size = 1000
 X,Xadv = generate_wrapper(M, T1, 0.02, 10, gen_size)
-X,Xadv = generate_wrapper(M, T1, 0.6, 10, gen_size)
+X,Xadv = generate_wrapper(M, T1, 0.06, 10, gen_size)
 X,Xadv = generate_wrapper(M, T1, 0.1, 10, gen_size)
 
 X,Xadv = generate_wrapper(M, T2, 0.02, 5, gen_size)
-X,Xadv = generate_wrapper(M, T2, 0.6, 5, gen_size)
+X,Xadv = generate_wrapper(M, T2, 0.06, 5, gen_size)
 X,Xadv = generate_wrapper(M, T2, 0.1, 5, gen_size)
 
 X,Xadv = generate_wrapper(M, T3, 0.02, 2, gen_size)
-X,Xadv = generate_wrapper(M, T3, 0.6, 2, gen_size)
+X,Xadv = generate_wrapper(M, T3, 0.06, 2, gen_size)
 X,Xadv = generate_wrapper(M, T3, 0.1, 2, gen_size)
