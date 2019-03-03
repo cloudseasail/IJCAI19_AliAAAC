@@ -12,6 +12,8 @@ from model.xception_keras import XceptionFineTune19, preprocess_input
 from keras import optimizers
 from keras import callbacks
 from keras.models import load_model
+import keras.backend as K
+
 
 IMAGE_SIZE = 299
 CLASS_SIZE = 110
@@ -80,7 +82,7 @@ model.summary()
 ################################################################
 ############## Training with params and callbacks    ########
 ################################################################
-def lr_schedule(epoch):
+def _lr_schedule(epoch):
     lr = 1e-3
     if epoch > 10:
         lr *= 1e-2
@@ -88,11 +90,19 @@ def lr_schedule(epoch):
         lr *= 1e-1
     print('Learning rate: ', lr)
     return lr
+def lr_scheduler(epoch):
+    lr = _lr_schedule(epoch)
+    K.set_value(model.optimizer.lr, lr)
+    print("lr changed from {0} to {1}".format(K.get_value(model.optimizer.lr), lr))
+    return K.get_value(model.optimizer.lr)
+
 model.compile(loss='categorical_crossentropy',
 #               optimizer=optimizers.RMSprop(lr=2e-5),
-              optimizer=optimizers.Adam(lr=lr_schedule(0)),
+              optimizer=optimizers.Adam(lr=_lr_schedule(EPOCH_INIT)),
               metrics=['accuracy'])
 
+lrscheduler = callbacks.LearningRateScheduler(lr_scheduler)
+lrreducer = callbacks.ReduceLROnPlateau(monitor='val_loss', patience=3, mode='auto', min_lr=0.5e-6)
 tensorboard = TensorBoardCallback(tensorboard_generator, BATCH_SIZE, "logs/train/")
 checkpointer = callbacks.ModelCheckpoint(filepath="logs/xception19.h5", verbose=1, save_best_only=True)
 history = model.fit_generator(
@@ -102,7 +112,7 @@ history = model.fit_generator(
       validation_data=validation_generator,
       validation_steps= max(STEPS_PRE_EPOCH*VALIDATION_SPLIT, 30),
 #       use_multiprocessing=True,
-      callbacks = [checkpointer, tensorboard],
+      callbacks = [checkpointer, tensorboard, lrscheduler, lrreducer],
       verbose=1,
       initial_epoch=EPOCH_INIT)
       

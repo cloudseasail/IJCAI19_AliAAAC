@@ -60,21 +60,22 @@ class DefenseDataFlow():
         return X,Y
 class DefenseDataGenerator(ImageDataGenerator):
     def __init__(self, msb_max=None, msb_rate=0.1, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        #super is using preprocessing_function,  donot conflict it!
+        self._preprocessing_function = None
+        if "preprocessing_function" in kwargs:
+            self._preprocessing_function = kwargs["preprocessing_function"]
+            del kwargs["preprocessing_function"]
         self.msb_max = msb_max
         self.msb_rate = msb_rate
-        self.preprocessing_function = None
-        if "preprocessing_function" in kwargs:
-            self.preprocessing_function = kwargs["preprocessing_function"]
-            del kwargs["preprocessing_function"]
+        super().__init__(*args, **kwargs)
         # print(kwargs)
     def flow_from_directory(self, *args, **kwargs):
         flow = super().flow_from_directory(*args, **kwargs)
         return DefenseDataFlow(flow, self)
     def _apply(self, x):
         x = self._msb_apply(x)
-        if self.preprocessing_function:
-            x = self.preprocessing_function(x)
+        if self._preprocessing_function:
+            x = self._preprocessing_function(x)
         return x
     def _msb_apply(self, x):
         if self.msb_max is not None:
