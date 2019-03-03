@@ -89,7 +89,60 @@ def plot_images(X, Xadv, s=0, n=5):
     plt.show()
 
 
-from keras_preprocessing.image import array_to_img
+class ImageLoader():
+    def __init__(self, dir, batch_shape, label_size=None, format='jpg', labels=None):
+        self.dir = dir
+        self.format = format
+        self.labels = labels
+        self.batch_shape = batch_shape
+        self.label_size = label_size
+    def __next__(self, *args, **kwargs):
+        if self.labels:
+            return self._load_labeled(*args, **kwargs)
+        else:
+            return self._load_nonlabeled(*args, **kwargs)
+    def _load_labeled(self):
+        images = np.zeros(self.batch_shape)
+        labels = np.zeros((self.batch_shape[0], self.label_size), dtype=np.int32)
+        filenames = []
+        idx = 0
+        with open(os.path.join(self.dir, self.labels)) as f:
+            for row in reader:
+                filepath = os.path.join(input_dir, row['filename'])
+                img = image.load_img(filepath, target_size=(self.batch_shape[1], self.batch_shape[2]))
+                img = image.img_to_array(img)
+                images[idx] = img
+                labels[idx] = make_one_hot(int(row['trueLabel']), self.label_size)
+                filenames.append(os.path.basename(filepath))
+                idx += 1
+                if idx == self.batch_shape[0]:
+                    yield filenames, images, labels
+                    filenames = []
+                    images = np.zeros(batch_shape)
+                    labels = np.zeros((self.batch_shape[0], self.label_size), dtype=np.int32)
+                    idx = 0
+            if idx > 0:
+                size = len(filenames)
+                yield filenames, images[:size], labels[:size]
+    def _load_nonlabeled(self):
+        images = np.zeros(self.batch_shape)
+        filenames = []
+        idx = 0
+        for filepath in tf.gfile.Glob(os.path.join(self.dir, '*.'+self.format)):
+            img = image.load_img(filepath, target_size=(self.batch_shape[1], self.batch_shape[2]))
+            img = image.img_to_array(img)
+            images[idx] = img
+            filenames.append(os.path.basename(filepath))
+            idx += 1
+            if idx == self.batch_shape[0]:
+                yield filenames, images
+                filenames = []
+                images = np.zeros(batch_shape)  
+                idx = 0
+        if idx > 0:
+            size = len(filenames)
+            yield filenames, images[:size]
+
 class ImageSaver():
     def __init__(self, save_dir, data_format='channels_last', save_format='jpg', save_prefix='', scale=False):
         self.save_dir = save_dir
@@ -100,8 +153,8 @@ class ImageSaver():
     def save_array(self, fname, image_array):
         if (fname[-4:] == '.jpg') or (fname[-4:] == '.png'):
             fname = fname[:-4]
-        img = array_to_img(image_array, self.data_format, scale=self.scale)
-        fname = '{fname}_{prefix}.{format}'.format(
+        img = image.array_to_img(image_array, self.data_format, scale=self.scale)
+        fname = '{fname}{prefix}.{format}'.format(
             prefix=self.save_prefix,
             fname=fname,
             format=self.save_format)

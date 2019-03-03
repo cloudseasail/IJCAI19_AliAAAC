@@ -1,3 +1,6 @@
+
+register pasword:  haifan2019
+
 1. (0,255) is hard to attack,  try to convert to (-1,1)
 2. logits has to be acheived dynamicly based on what x you get
 3. 
