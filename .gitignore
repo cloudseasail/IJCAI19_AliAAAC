@@ -3,7 +3,7 @@ dist/
 ~*.xlsx
 *.h5
 
-
+/IJCAI19/weight/
 
 __pycache__/
 *.py[cod]
