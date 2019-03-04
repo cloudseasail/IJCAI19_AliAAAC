@@ -11,6 +11,24 @@ def calc_l2(x, xadv):
     diff = x.reshape((-1, 3)) - xadv.reshape((-1, 3))
     distance = np.mean(np.sqrt(np.sum((diff ** 2), axis=1)))
     return distance
+def calc_score_slow(x, xadv, y, yadv):
+    score = 0
+    for i in range(x.shape[0]):
+        if y[i] == yadv[i]:
+            score += 128
+        else:
+            score += calc_l2(x,xadv)
+    return score/x.shape[0]
+def calc_score(x, xadv, y, yadv):
+    score = 0
+    succ = (y != yadv)
+    succ_num = x[succ].shape[0]
+    succ_mean = calc_l2(x[succ],xadv[succ])
+    succ_score = succ_mean*succ_num
+    fail_score = 128* (x.shape[0] - succ_num)
+    # print(succ_num, succ_mean, fail_score)
+    return (succ_score+fail_score)/x.shape[0]
+
 def mem_data_generater(X,Y, batch_shape=None, label_shape=(None,110)):
     batch_size = batch_shape[0]
     input_size = batch_shape[2]
@@ -23,35 +41,6 @@ def mem_data_generater(X,Y, batch_shape=None, label_shape=(None,110)):
             break
         idx = idx+1
         yield None, X[s:e], Y[s:e]
-
-def dev_data_generater(input_dir='../official_data/dev_data/', batch_shape=None, label_shape=(None,110)):
-    batch_size = batch_shape[0]
-    input_size = batch_shape[2]
-    label_size = label_shape[1]
-    images = np.zeros(batch_shape)
-    labels = np.zeros((batch_size, label_size), dtype=np.int32)
-    filenames = []
-    idx = 0
-    with open(os.path.join(input_dir, 'dev.csv')) as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            filepath = os.path.join(input_dir, row['filename'])
-            img = image.load_img(filepath, target_size=(input_size, input_size))
-            img = image.img_to_array(img)
-            images[idx] = img
-            labels[idx] = make_one_hot(int(row['trueLabel']), label_size)
-            filenames.append(os.path.basename(filepath))
-            idx += 1
-            if idx == batch_size:
-                yield filenames, images, labels
-                filenames = []
-                images = np.zeros(batch_shape)
-                labels = np.zeros((batch_size, label_size), dtype=np.int32)
-                idx = 0
-        if idx > 0:
-            size = len(filenames)
-            yield filenames, images[:size], labels[:size]
-
 
 import time
 class Profile():
@@ -90,35 +79,45 @@ def plot_images(X, Xadv, s=0, n=5):
 
 
 class ImageLoader():
-    def __init__(self, dir, batch_shape, label_size=None, format='jpg', labels=None):
+    def __init__(self, dir, batch_shape, targetlabel=False, label_size=None, format='jpg', label_file=None):
         self.dir = dir
         self.format = format
-        self.labels = labels
+        self.label_file = label_file
         self.batch_shape = batch_shape
         self.label_size = label_size
-    def __next__(self, *args, **kwargs):
-        if self.labels:
-            return self._load_labeled(*args, **kwargs)
+        self.target_label = targetlabel
+        self.generator = self.get_generator()
+    def get_generator(self):
+        if self.label_file:
+            return self._load_labeled()
         else:
-            return self._load_nonlabeled(*args, **kwargs)
+            return self._load_nonlabeled()
+    def __iter__(self):
+        return self
+    def __next__(self, *args, **kwargs):
+        return next(self.generator)
     def _load_labeled(self):
         images = np.zeros(self.batch_shape)
         labels = np.zeros((self.batch_shape[0], self.label_size), dtype=np.int32)
         filenames = []
         idx = 0
-        with open(os.path.join(self.dir, self.labels)) as f:
+        with open(os.path.join(self.dir, self.label_file)) as f:
+            reader = csv.DictReader(f)
             for row in reader:
-                filepath = os.path.join(input_dir, row['filename'])
+                filepath = os.path.join(self.dir, row['filename'])
                 img = image.load_img(filepath, target_size=(self.batch_shape[1], self.batch_shape[2]))
                 img = image.img_to_array(img)
                 images[idx] = img
-                labels[idx] = make_one_hot(int(row['trueLabel']), self.label_size)
+                if self.target_label == False:
+                    labels[idx] = make_one_hot(int(row['trueLabel']), self.label_size)
+                else:
+                    labels[idx] = make_one_hot(int(row['targetedLabel']), self.label_size)
                 filenames.append(os.path.basename(filepath))
                 idx += 1
                 if idx == self.batch_shape[0]:
                     yield filenames, images, labels
                     filenames = []
-                    images = np.zeros(batch_shape)
+                    images = np.zeros(self.batch_shape)
                     labels = np.zeros((self.batch_shape[0], self.label_size), dtype=np.int32)
                     idx = 0
             if idx > 0:
@@ -137,7 +136,7 @@ class ImageLoader():
             if idx == self.batch_shape[0]:
                 yield filenames, images
                 filenames = []
-                images = np.zeros(batch_shape)  
+                images = np.zeros(self.batch_shape)  
                 idx = 0
         if idx > 0:
             size = len(filenames)

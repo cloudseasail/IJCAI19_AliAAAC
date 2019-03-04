@@ -6,7 +6,7 @@ from . import slimvgg as vgg
 from tensorflow.contrib import slim
 from tensorflow.contrib.layers.python.layers import layers as layers_lib
 
-# OFFICIAL_DATA_ROOT = '../official_data/'
+# WEIGHT_DIR = '../official_data/'
 
 def Inception_preprocess(imgs, undo=False):
     if (undo):
@@ -31,13 +31,13 @@ def Vgg_preprocess_tf(imgs, undo=False):
     return out_imgs
 
 class OfficialModel():
-    OFFICIAL_DATA_ROOT = '../official_data/'
+    WEIGHT_DIR = '../weight/'
     model = {
         'inception_v1': {
             'var_scope': 'InceptionV1',
             'arg_scope': inception_v1.inception_v1_arg_scope,
             'graph': inception_v1.inception_v1,
-            'checkpoint_dir':  'model/inception_v1/inception_v1.ckpt',
+            'checkpoint_dir':  'inception_v1/inception_v1.ckpt',
             'preprocess': Inception_preprocess,
             'min_max': (-1.0, 1.0),
             'default_input_size': 224,
@@ -46,7 +46,7 @@ class OfficialModel():
             'var_scope': 'resnet_v1_50',
             'arg_scope': resnet_v1.resnet_arg_scope,
             'graph': resnet_v1.resnet_v1_50,
-            'checkpoint_dir':  'model/resnet_v1_50/model.ckpt-49800',
+            'checkpoint_dir':  'resnet_v1_50/model.ckpt-49800',
             'preprocess': Vgg_preprocess_tf,
             'min_max': (0-115, 255-115),
             'default_input_size': 224,
@@ -55,7 +55,7 @@ class OfficialModel():
             'var_scope': 'vgg_16',
             'arg_scope': vgg.vgg_arg_scope,
             'graph': vgg.vgg_16,
-            'checkpoint_dir':  'model/vgg_16/vgg_16.ckpt',
+            'checkpoint_dir':  'vgg_16/vgg_16.ckpt',
             'preprocess': Vgg_preprocess_tf,
             'min_max': (0-115, 255-115),
             'default_input_size': 224,
@@ -91,7 +91,7 @@ class OfficialModel():
                 end_points['Predictions'] = layers_lib.softmax(end_points['Logits'], scope='predictions')
         return end_points
     def get_weight(self):
-        return OfficialModel.OFFICIAL_DATA_ROOT + self._model['checkpoint_dir']
+        return OfficialModel.WEIGHT_DIR + self._model['checkpoint_dir']
     def load_weight(self, checkpoint_path=''):
         # if self.weight_loaded == False:
         if True:
