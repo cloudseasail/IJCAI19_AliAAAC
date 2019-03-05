@@ -1,5 +1,5 @@
 
-FROM registry.cn-hangzhou.aliyuncs.com/haifan_deep/ijcai2019_pilot:weight2.2.0
+FROM registry.cn-shanghai.aliyuncs.com/haifan_deep/ijcai2019:weight2.3.0
 #MAINTAINER
 MAINTAINER cloudseasail
 
