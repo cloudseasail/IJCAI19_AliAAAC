@@ -8,7 +8,7 @@ MAINTAINER AlibabaSec
 ADD . /competition
 
 WORKDIR /competition
-RUN pip --no-cache-dir install  -r requirements.txt
+RUN pip --no-cache-dir install -r requirements.txt
 # INSTALL cleverhans foolbox
 
 RUN mkdir ./models

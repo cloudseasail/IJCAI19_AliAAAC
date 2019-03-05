@@ -16,6 +16,7 @@ print(sys.path)
 from IJCAI19.module.utils import *
 from IJCAI19.module.utils_tf import * 
 from IJCAI19.model.EmbeddedAttackModel import TargetModel, EmbeddedAttackModel
+from cleverhans.attacks import FastGradientMethod
 from IJCAI19.module.gs_mim import GradSmoothMomentumIterativeMethod
 from IJCAI19.model.OfficialModel import OfficialModel
 
@@ -30,7 +31,7 @@ tf.flags.DEFINE_integer(
 tf.flags.DEFINE_integer(
     'image_height', 299, 'Height of each input images.')
 tf.flags.DEFINE_integer(
-    'batch_size', 32, 'How many images process at one time.')
+    'batch_size', 8, 'How many images process at one time.')
 tf.flags.DEFINE_integer(
     'num_classes', 110, 'Number of Classes')
 FLAGS = tf.flags.FLAGS
@@ -69,8 +70,9 @@ def attack(M, attack_params, targetlabel):
 
 def main(_):
     USE_TRUE_TARGET = True
-    tf.logging.set_verbosity(tf.logging.INFO)
-    M = GradSmoothMomentumIterativeMethod
+    tf.logging.set_verbosity(tf.logging.WARNING)
+    # M = GradSmoothMomentumIterativeMethod
+    M = FastGradientMethod
     #non targeted with guessed label
     attack_params = {"ep_ratio": 0.1, "nb_iter": 10, "y":USE_TRUE_TARGET}
     attack(M, attack_params, targetlabel=False)

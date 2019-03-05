@@ -1,0 +1,12 @@
+Line ending in run.sh
+sed -i.bak 's/\r$//' run.sh
+
+CUDA version
+cat /usr/local/cuda/version.txt
+
+
+run.sh input_images output_images
+python attack.py --input_dir=./dev_data/  --output_dir=./out_data/ --batch_size=1
+
+docker cp ../official_data/dev_data :/competition
+docker cp ../official_data/dev_data :/competition

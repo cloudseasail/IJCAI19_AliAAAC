@@ -13,4 +13,5 @@ OUTPUT_DIR=$2
 
 python attack.py \
   --input_dir="${INPUT_DIR}" \
-  --output_dir="${OUTPUT_DIR}" 
+  --output_dir="${OUTPUT_DIR}" \
+  --batch_size=32
