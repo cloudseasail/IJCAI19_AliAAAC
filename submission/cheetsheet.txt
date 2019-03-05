@@ -13,3 +13,7 @@ python attack.py --input_dir=./dev_data/  --output_dir=./out_data/ --batch_size=
 
 docker cp ../official_data/dev_data :/competition
 docker cp ../official_data/dev_data :/competition
+
+
+registry-vpc.cn-hangzhou.aliyuncs.com/haifan_deep/ijcai2019_pilot:d2.2.1
+海帆智能

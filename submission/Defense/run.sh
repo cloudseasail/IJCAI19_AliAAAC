@@ -11,7 +11,7 @@
 INPUT_DIR=$1
 OUTPUT_FILE=$2
 
-python defense.py \
+python attack.py \
   --input_dir="${INPUT_DIR}" \
   --output_file="${OUTPUT_FILE}" \
   --batch_size=8
