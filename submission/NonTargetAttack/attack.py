@@ -9,9 +9,9 @@ import os
 import numpy as np
 import tensorflow as tf
 
-import sys
-sys.path.append("../../")
-print(sys.path)
+# import sys
+# sys.path.append("../../")
+# print(sys.path)
 
 from IJCAI19.module.utils import *
 from IJCAI19.module.utils_tf import * 

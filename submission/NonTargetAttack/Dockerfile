@@ -1,13 +1,10 @@
 
-FROM registry.cn-shanghai.aliyuncs.com/aliseccompetition/tensorflow:1.1.0-devel-gpu
+FROM registry.cn-hangzhou.aliyuncs.com/haifan_deep/ijcai2019_pilot:2.0.1
 #MAINTAINER
-MAINTAINER AlibabaSec
+MAINTAINER cloudseasail
 
 COPY . /competition
-
+COPY ../../IJCAI19 /competition/
 WORKDIR /competition
 RUN pip --no-cache-dir install  -r requirements.txt
-# INSTALL cleverhans foolbox
-
-RUN mkdir ./models
-RUN curl -O  'http://alg-misc.cn-hangzhou.oss.aliyun-inc.com/ijcai2019_ai_security_competition/pretrained_models/inception_v1.tar.gz' && tar -xvf inception_v1.tar.gz -C ./models/
+# INSTALL cleverhans foolboxW
