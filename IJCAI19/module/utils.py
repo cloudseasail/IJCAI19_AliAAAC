@@ -19,15 +19,19 @@ def calc_score_slow(x, xadv, y, yadv):
         else:
             score += calc_l2(x,xadv)
     return score/x.shape[0]
-def calc_score(x, xadv, y, yadv):
-    score = 0
-    succ = (y != yadv)
+def calc_score(x, xadv, y, yadv, target=False):
+    if target:
+        succ = (y == yadv)
+    else:
+        succ = (y != yadv)
     succ_num = x[succ].shape[0]
     succ_mean = calc_l2(x[succ],xadv[succ])
     succ_score = succ_mean*succ_num
     fail_score = 128* (x.shape[0] - succ_num)
     # print(succ_num, succ_mean, fail_score)
-    return (succ_score+fail_score)/x.shape[0]
+    score = (succ_score+fail_score)/x.shape[0]
+    succ = succ_num/x.shape[0]
+    return score, succ
 
 def mem_data_generater(X,Y, batch_shape=None, label_shape=(None,110)):
     batch_size = batch_shape[0]

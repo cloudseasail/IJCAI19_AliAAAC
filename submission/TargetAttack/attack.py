@@ -6,126 +6,79 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 import os
-import csv
 import numpy as np
 import tensorflow as tf
-from tensorflow.contrib.slim.nets import inception
-from scipy.misc import imread
-from scipy.misc import imresize
-from cleverhans.attacks import MomentumIterativeMethod
-from cleverhans.attacks import Model
-from PIL import Image
-slim = tf.contrib.slim
+
+# import sys
+# sys.path.append("../../")
+# print(sys.path)
+
+from IJCAI19.module.utils import *
+from IJCAI19.module.utils_tf import * 
+from IJCAI19.model.EmbeddedAttackModel import TargetModel, EmbeddedAttackModel
+from cleverhans.attacks import FastGradientMethod
+from IJCAI19.module.gs_mim import GradSmoothMomentumIterativeMethod
+from IJCAI19.model.OfficialModel import OfficialModel
+
 tf.flags.DEFINE_string(
-    'checkpoint_path', '', 'Path to checkpoint for inception network.')
+    'weight_path', 'IJCAI19/weight/', 'Path to checkpoint for inception network.')
 tf.flags.DEFINE_string(
     'input_dir', '', 'Input directory with images.')
 tf.flags.DEFINE_string(
     'output_dir', '', 'Output directory with images.')
 tf.flags.DEFINE_integer(
-    'image_width', 224, 'Width of each input images.')
+    'image_width', 299, 'Width of each input images.')
 tf.flags.DEFINE_integer(
-    'image_height', 224, 'Height of each input images.')
+    'image_height', 299, 'Height of each input images.')
 tf.flags.DEFINE_integer(
-    'batch_size', 16, 'How many images process at one time.')
+    'batch_size', 8, 'How many images process at one time.')
 tf.flags.DEFINE_integer(
     'num_classes', 110, 'Number of Classes')
 FLAGS = tf.flags.FLAGS
 
+tf.app.flags.DEFINE_string('f', '', 'kernel')
 
-def load_images(input_dir, batch_shape):
-    images = np.zeros(batch_shape)
-    labels = np.zeros(batch_shape[0], dtype=np.int32)
-    filenames = []
-    idx = 0
-    batch_size = batch_shape[0]
-    with open(os.path.join(input_dir, 'dev.csv'), 'rb') as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            filepath = os.path.join(input_dir, row['filename'])
-            with open(filepath) as f:
-                raw_image = imread(f, mode='RGB').astype(np.float)
-                image = imresize(raw_image, [FLAGS.image_height, FLAGS.image_width]) / 255.0
-            # Images for inception classifier are normalized to be in [-1, 1] interval.
-            images[idx, :, :, :] = image * 2.0 - 1.0
-            labels[idx] = int(row['targetedLabel'])
-            filenames.append(os.path.basename(filepath))
-            idx += 1
-            if idx == batch_size:
-                yield filenames, images, labels
-                filenames = []
-                images = np.zeros(batch_shape)
-                labels = np.zeros(batch_shape[0], dtype=np.int32)
-                idx = 0
-        if idx > 0:
-            yield filenames, images, labels
+def attack(M, attack_params, targetlabel):
+    OfficialModel.WEIGHT_DIR = FLAGS.weight_path
+    batch_shape = [FLAGS.batch_size, FLAGS.image_height, FLAGS.image_width, 3]
 
+    # img_loader = ImageLoader(FLAGS.input_dir, batch_shape, label_size=None, format='png', labels=None)
+    img_loader = ImageLoader(FLAGS.input_dir, batch_shape, targetlabel=targetlabel, label_size=FLAGS.num_classes, format='png', label_file='dev.csv')
+    img_saver = ImageSaver(FLAGS.output_dir, save_format='png', save_prefix='', scale=False)
 
-def save_images(images, filenames, output_dir):
-    for i, filename in enumerate(filenames):
-        # Images for inception classifier are normalized to be in [-1, 1] interval,
-        # so rescale them back to [0, 1].
-        with open(os.path.join(output_dir, filename), 'w') as f:
-            img = (((images[i, :, :, :] + 1.0) * 0.5) * 255.0).astype(np.uint8)
-            # resize back to [299, 299]
-            r_img = imresize(img, [299, 299])
-            Image.fromarray(r_img).save(f, format='PNG')
+    name = 'inception_v1'
+    T1 = TargetModel(batch_shape, FLAGS.num_classes, name=name)
+    name = 'resnetv1_50'
+    T2 = TargetModel(batch_shape, FLAGS.num_classes, name=name)
+    name = 'vgg_16'
+    T3 = TargetModel(batch_shape, FLAGS.num_classes, name=name)
 
+    A = EmbeddedAttackModel(batch_shape, FLAGS.num_classes)
+    A.add_model(T1)
+    A.add_model(T2)
+    # A.add_model(T3)
 
-class InceptionModel(Model):
-    """Model class for CleverHans library."""
-    def __init__(self, nb_classes):
-        super(InceptionModel, self).__init__(nb_classes=nb_classes,
-                                             needs_dummy_fprop=True)
-        self.built = False
-
-    def __call__(self, x_input, return_logits=False):
-        """Constructs model and return probabilities for given input."""
-        reuse = True if self.built else None
-        with slim.arg_scope(inception.inception_v1_arg_scope()):
-            _, end_points = inception.inception_v1(
-                x_input, num_classes=self.nb_classes, is_training=False,
-                reuse=reuse)
-        self.built = True
-        self.logits = end_points['Logits']
-        # Strip off the extra reshape op at the output
-        self.probs = end_points['Predictions'].op.inputs[0]
-        if return_logits:
-            return self.logits
-        else:
-            return self.probs
-
-    def get_logits(self, x_input):
-        return self(x_input, return_logits=True)
-
-    def get_probs(self, x_input):
-        return self(x_input)
+    config = gpu_session_config()
+    with tf.Session(config=config) as sess:
+        A.attack_generate(sess, M, attack_params)
+        for filenames, X, Y in img_loader:
+            Xadv = A.attack_batch(X, Y)
+            for i in range(Xadv.shape[0]):
+                img_saver.save_array(filenames[i], Xadv[i])
+    tf.reset_default_graph()
 
 
 def main(_):
-    """Run the sample attack"""
-    batch_shape = [FLAGS.batch_size, FLAGS.image_height, FLAGS.image_width, 3]
-    nb_classes = FLAGS.num_classes
-    tf.logging.set_verbosity(tf.logging.INFO)
+    TARGET_ATTACK = True
+    tf.logging.set_verbosity(tf.logging.WARN)
+    # M = GradSmoothMomentumIterativeMethod
+    M = FastGradientMethod
+    #non targeted with guessed label
+    attack_params = {"ep_ratio": 0.1, "nb_iter": 10, "target":TARGET_ATTACK}
+    attack(M, attack_params, targetlabel=TARGET_ATTACK)
 
-    with tf.Graph().as_default():
-        # Prepare graph
-        x_input = tf.placeholder(tf.float32, shape=batch_shape)
-        target_class_input = tf.placeholder(tf.int32, shape=[FLAGS.batch_size])
-        one_hot_target_class = tf.one_hot(target_class_input, nb_classes)
-        model = InceptionModel(nb_classes)
-        # Run computation
-        with tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)) as sess:
-            mim = MomentumIterativeMethod(model, sess=sess)
-            attack_params = {"eps": 32.0 / 255.0, "eps_iter": 0.01, "clip_min": -1.0, "clip_max": 1.0, \
-                             "nb_iter": 20, "decay_factor": 1.0, "y_target": one_hot_target_class}
-            x_adv = mim.generate(x_input, **attack_params)
-            saver = tf.train.Saver(slim.get_model_variables())
-            saver.restore(sess, FLAGS.checkpoint_path)
-            for filenames, images, tlabels in load_images(FLAGS.input_dir, batch_shape):
-                adv_images = sess.run(x_adv,
-                                      feed_dict={x_input: images, target_class_input: tlabels})
-                save_images(adv_images, filenames, FLAGS.output_dir)
+    print("done")
+
 
 if __name__ == '__main__':
     tf.app.run()

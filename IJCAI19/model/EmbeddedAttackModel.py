@@ -76,8 +76,11 @@ class EmbeddedAttackModel(CleverhansModel):
             params['eps_iter'] = params['eps']/10
         if "nb_iter" in params: 
             params['eps_iter'] = params['eps']/params['nb_iter']
-        if "y" in params:
-            params['y'] = op_y
+        if "target" in params:
+            if params['target']:
+                params['y_target'] = op_y
+            else:
+                params['y'] = op_y
 
         params['clip_min'] = _min
         params['clip_max'] = _max

@@ -69,13 +69,13 @@ def attack(M, attack_params, targetlabel):
 
 
 def main(_):
-    USE_TRUE_TARGET = True
+    TARGET_ATTACK = False
     tf.logging.set_verbosity(tf.logging.WARN)
     # M = GradSmoothMomentumIterativeMethod
     M = FastGradientMethod
     #non targeted with guessed label
-    attack_params = {"ep_ratio": 0.1, "nb_iter": 10, "y":USE_TRUE_TARGET}
-    attack(M, attack_params, targetlabel=False)
+    attack_params = {"ep_ratio": 0.1, "nb_iter": 10, "target":TARGET_ATTACK}
+    attack(M, attack_params, targetlabel=TARGET_ATTACK)
 
     print("done")
 
