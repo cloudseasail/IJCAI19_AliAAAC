@@ -6,7 +6,7 @@ from module.official_model_v3 import OfficialModel
 OfficialModel.OFFICIAL_DATA_ROOT = '../../official_data/'
 
 from module.EnhancedDataGenerator import *
-from module.EmbeddedAttackModel import TargetModel, EmbeddedAttackModel
+from module.EmbeddedAttackModel import AttackModel, EmbeddedAttackModel
 from module.gs_mim import GradSmoothMomentumIterativeMethod
 
 
@@ -43,11 +43,11 @@ GF = G.flow_from_directory(
     )
 
 name = 'inception_v1'
-T1 = TargetModel(batch_shape, LABEL_SIZE, name=name)
+T1 = AttackModel(batch_shape, LABEL_SIZE, name=name)
 name = 'resnetv1_50'
-T2 = TargetModel(batch_shape, LABEL_SIZE, name=name)
+T2 = AttackModel(batch_shape, LABEL_SIZE, name=name)
 name = 'vgg_16'
-T3 = TargetModel(batch_shape, LABEL_SIZE, name=name)
+T3 = AttackModel(batch_shape, LABEL_SIZE, name=name)
 
 def generate(M, T, attack_params, max_sample_size = 5000, prefix='adv'):
     A = EmbeddedAttackModel(batch_shape, LABEL_SIZE)

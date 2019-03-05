@@ -64,22 +64,9 @@ class OfficialModel():
     def __init__(self, name):
         self.name = name
         self._model = OfficialModel.model[name]
-        self.weight_loaded = False
-        self.built = False
-    def loaded(self):
-        graph = tf.get_default_graph()
-        loaded = False
-        if hasattr(graph, "_official_model_built_"):
-            if self.name in graph._official_model_built_:
-                loaded = True
-        else:
-            graph._official_model_built_ = []
+        # self.weight_loaded = False
 
-        if (loaded == False):
-            graph._official_model_built_.append(self.name)
-        return loaded
     def get_endpoints(self, x, nb_classes):
-        # reuse = self.loaded()
         with slim.arg_scope(self._model['arg_scope']()):
             # print("get_endpoints", self.name)
             logits, end_points = self._model['graph'](x, num_classes=nb_classes,is_training=False,reuse=tf.AUTO_REUSE)
@@ -90,18 +77,18 @@ class OfficialModel():
             if 'Predictions' not in end_points:
                 end_points['Predictions'] = layers_lib.softmax(end_points['Logits'], scope='predictions')
         return end_points
-    def get_weight(self):
+    def _get_weight(self):
         return OfficialModel.WEIGHT_DIR + self._model['checkpoint_dir']
     def load_weight(self, checkpoint_path=''):
         # if self.weight_loaded == False:
         if True:
             saver = tf.train.Saver(slim.get_model_variables(scope=self._model['var_scope']))
             if checkpoint_path == '':
-                checkpoint_path = self.get_weight()
+                checkpoint_path = self._get_weight()
             saver.restore(tf.get_default_session(), checkpoint_path)
             # saver.restore(self.attack_sess, checkpoint_path)
             # self.weight_loaded = True
-    def input_resize(self, imgs):
+    def _input_resize(self, imgs):
         default_input_size = self._model['default_input_size']
         imgs = tf.image.resize_images(imgs, [default_input_size,default_input_size])
         return imgs
@@ -111,10 +98,10 @@ class OfficialModel():
     def preprocess(self, imgs):
         return self._model['preprocess'](imgs)
     def attack_preprocess(self, imgs):
-        imgs = self.input_resize(imgs)
+        imgs = self._input_resize(imgs)
         return self.preprocess(imgs)
     def predict_preprocess(self, imgs):
-        imgs = self.input_resize(imgs)
+        imgs = self._input_resize(imgs)
         return self.preprocess(imgs)
 
 

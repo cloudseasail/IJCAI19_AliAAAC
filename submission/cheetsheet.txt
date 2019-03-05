@@ -1,6 +1,9 @@
 Line ending in run.sh
 sed -i.bak 's/\r$//' run.sh
 
+VGA info :
+lspci -vnn | grep VGA -A 12 
+
 CUDA version
 cat /usr/local/cuda/version.txt
 

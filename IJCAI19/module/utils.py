@@ -1,3 +1,4 @@
+import tensorflow as tf
 from keras.preprocessing import image
 import numpy as np
 import os
@@ -81,6 +82,12 @@ def plot_images(X, Xadv, s=0, n=5):
         fig.axes.get_yaxis().set_visible(False)
     plt.show()
 
+def plot_pred(y, n):
+    plt.bar(range(n), y)
+    plt.legend()
+    plt.xlabel("%d, %.2f" % (y.argmax(), y[y.argmax()]))
+    plt.show()
+    
 
 class ImageLoader():
     def __init__(self, dir, batch_shape, targetlabel=False, label_size=None, format='jpg', label_file=None):
@@ -138,13 +145,13 @@ class ImageLoader():
             filenames.append(os.path.basename(filepath))
             idx += 1
             if idx == self.batch_shape[0]:
-                yield filenames, images
+                yield filenames, images, None
                 filenames = []
                 images = np.zeros(self.batch_shape)  
                 idx = 0
         if idx > 0:
             size = len(filenames)
-            yield filenames, images[:size]
+            yield filenames, images[:size], None
 
 class ImageSaver():
     def __init__(self, save_dir, data_format='channels_last', save_format='jpg', save_prefix='', scale=False):

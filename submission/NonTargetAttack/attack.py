@@ -15,7 +15,7 @@ import tensorflow as tf
 
 from IJCAI19.module.utils import *
 from IJCAI19.module.utils_tf import * 
-from IJCAI19.model.EmbeddedAttackModel import TargetModel, EmbeddedAttackModel
+from IJCAI19.model.EmbeddedAttackModel import AttackModel, EmbeddedAttackModel
 from cleverhans.attacks import FastGradientMethod
 from IJCAI19.module.gs_mim import GradSmoothMomentumIterativeMethod
 from IJCAI19.model.OfficialModel import OfficialModel
@@ -47,11 +47,11 @@ def attack(M, attack_params, targetlabel):
     img_saver = ImageSaver(FLAGS.output_dir, save_format='png', save_prefix='', scale=False)
 
     name = 'inception_v1'
-    T1 = TargetModel(batch_shape, FLAGS.num_classes, name=name)
+    T1 = AttackModel(batch_shape, FLAGS.num_classes, name=name)
     name = 'resnetv1_50'
-    T2 = TargetModel(batch_shape, FLAGS.num_classes, name=name)
+    T2 = AttackModel(batch_shape, FLAGS.num_classes, name=name)
     name = 'vgg_16'
-    T3 = TargetModel(batch_shape, FLAGS.num_classes, name=name)
+    T3 = AttackModel(batch_shape, FLAGS.num_classes, name=name)
 
     A = EmbeddedAttackModel(batch_shape, FLAGS.num_classes)
     A.add_model(T1)
