@@ -70,7 +70,7 @@ def attack(M, attack_params, targetlabel):
 
 def main(_):
     USE_TRUE_TARGET = True
-    tf.logging.set_verbosity(tf.logging.WARNING)
+    tf.logging.set_verbosity(tf.logging.WARN)
     # M = GradSmoothMomentumIterativeMethod
     M = FastGradientMethod
     #non targeted with guessed label
