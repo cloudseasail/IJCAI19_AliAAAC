@@ -37,7 +37,6 @@ class BatchModel():
 
 
 def PredictBatch(T, gen):
-    batch_size = T.batch_shape[0]
     batch_iter = 0
     total_correct = 0
     total_size = 0
@@ -48,6 +47,7 @@ def PredictBatch(T, gen):
     with tf.Session(config=config) as sess:
         T.predict_generate(sess)
         for _,X,Y in gen:
+            batch_size =  X.shape[0]
             if Y is not None:
                 ypred, topk, accuracy = T.predict_batch(X, Y)
                 total_correct += (accuracy*batch_size)
@@ -59,7 +59,6 @@ def PredictBatch(T, gen):
                 ypred = T.predict_batch(X, None)
 
             batch_iter +=1
-            batch_size =  X.shape[0]
             total_size += batch_size
             if total_ypred is None:
                 total_ypred = ypred

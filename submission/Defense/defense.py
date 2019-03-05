@@ -15,7 +15,7 @@ import tensorflow as tf
 
 from IJCAI19.module.utils import *
 from IJCAI19.module.utils_tf import * 
-from IJCAI19.model.EmbeddedDefenseModel import DefenseModel
+from IJCAI19.model.EmbeddedDefenseModel import *
 from IJCAI19.model.OfficialModel import OfficialModel
 
 tf.flags.DEFINE_string(
@@ -36,22 +36,22 @@ FLAGS = tf.flags.FLAGS
 
 tf.app.flags.DEFINE_string('f', '', 'kernel')
 
-def defense():
+def defense(D):
     OfficialModel.WEIGHT_DIR = FLAGS.weight_path
     batch_shape = [FLAGS.batch_size, FLAGS.image_height, FLAGS.image_width, 3]
 
     # img_loader = ImageLoader(FLAGS.input_dir, batch_shape, label_size=None, format='png', labels=None)
     img_loader = ImageLoader(FLAGS.input_dir, batch_shape, targetlabel=False, label_size=FLAGS.num_classes, format='png', label_file=None)
 
-    T = DefenseModel()
-
     config = gpu_session_config()
     with tf.Session(config=config) as sess:
-        A.attack_generate(sess, M, attack_params)
-        for filenames, X, Y in img_loader:
-            Xadv = A.attack_batch(X, Y)
-            for i in range(Xadv.shape[0]):
-                img_saver.save_array(filenames[i], Xadv[i])
+        D.predict_generate(sess)
+        with open(FLAGS.output_file, 'w') as out_file:
+            for filenames, X, _ in img_loader:
+                ypred = D.predict_batch(X, None)
+                for filename, label in zip(filenames, ypred.argmax(1)):
+                    out_file.write('{0},{1}\n'.format(filename, label))
+
     tf.reset_default_graph()
 
 
@@ -59,7 +59,10 @@ def main(_):
 
     tf.logging.set_verbosity(tf.logging.WARN)
 
-    defense(M, attack_params, targetlabel=TARGET_ATTACK)
+    batch_shape = [FLAGS.batch_size, FLAGS.image_height, FLAGS.image_width, 3]
+    name = "inception_v1"
+    D = MSBModel(msb=8, batch_shape=batch_shape, output_size=FLAGS.num_classes, name=name, use_prob=True)
+    defense(D)
 
     print("done")
 
