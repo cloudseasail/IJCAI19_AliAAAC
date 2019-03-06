@@ -1,6 +1,6 @@
-$tag="u2.3.2"
-$folder="..\NonTargetAttack"
-# $folder="..\TargetAttack"
+$tag="t2.3.3"
+# $folder="..\NonTargetAttack"
+$folder="..\TargetAttack"
 # $folder="..\Defense"
 
 cp ..\..\IJCAI19 .\IJCAI19 -Force -Recurse

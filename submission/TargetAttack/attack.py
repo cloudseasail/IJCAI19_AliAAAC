@@ -20,6 +20,9 @@ from cleverhans.attacks import FastGradientMethod
 from IJCAI19.module.gs_mim import GradSmoothMomentumIterativeMethod
 from IJCAI19.model.ModelFactory import ModelFactory
 
+from IJCAI19.model.GhostNet.ghost_resnet_v1 import GHOST
+
+
 tf.flags.DEFINE_string(
     'weight_path', 'IJCAI19/weight/', 'Path to checkpoint for inception network.')
 tf.flags.DEFINE_string(
@@ -48,7 +51,7 @@ def attack(M, attack_params, targetlabel):
 
     name = 'inception_v1'
     T1 = AttackModel(batch_shape, FLAGS.num_classes, name=name)
-    name = 'resnetv1_50'
+    name = 'ghost_resnetv1_50'
     T2 = AttackModel(batch_shape, FLAGS.num_classes, name=name)
     name = 'vgg_16'
     T3 = AttackModel(batch_shape, FLAGS.num_classes, name=name)
@@ -74,7 +77,9 @@ def main(_):
     M = GradSmoothMomentumIterativeMethod
     # M = FastGradientMethod
     #non targeted with guessed label
-    attack_params = {"ep_ratio": 0.1, "nb_iter": 20, "target":TARGET_ATTACK}
+    GHOST.shortcut_weight_range = 0.2
+
+    attack_params = {"ep_ratio": 0.1, "nb_iter": 50, "target":TARGET_ATTACK}
     attack(M, attack_params, targetlabel=TARGET_ATTACK)
 
     print("done")
