@@ -17,7 +17,7 @@ class DefenseModel(BatchModel):
     def predict_preprocess(self, x):
         if self.model:
             return self.model.predict_preprocess(x)
-    def attack_preprocess(self, imgs):
+    def attack_preprocess(self, x):
         if self.model:
             return self.model.attack_preprocess(x)
     def load_weight(self, *arg, **kwargs):

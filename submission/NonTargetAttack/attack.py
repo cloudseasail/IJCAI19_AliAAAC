@@ -56,7 +56,7 @@ def attack(M, attack_params, targetlabel):
     A = EmbeddedAttackModel(batch_shape, FLAGS.num_classes)
     A.add_model(T1)
     A.add_model(T2)
-    # A.add_model(T3)
+    A.add_model(T3)
 
     config = gpu_session_config()
     with tf.Session(config=config) as sess:
@@ -71,8 +71,8 @@ def attack(M, attack_params, targetlabel):
 def main(_):
     TARGET_ATTACK = False
     tf.logging.set_verbosity(tf.logging.WARN)
-    # M = GradSmoothMomentumIterativeMethod
-    M = FastGradientMethod
+    M = GradSmoothMomentumIterativeMethod
+    # M = FastGradientMethod
     #non targeted with guessed label
     attack_params = {"ep_ratio": 0.1, "nb_iter": 10, "target":TARGET_ATTACK}
     attack(M, attack_params, targetlabel=TARGET_ATTACK)
