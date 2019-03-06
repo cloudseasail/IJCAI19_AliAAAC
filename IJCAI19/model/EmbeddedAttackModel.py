@@ -90,7 +90,7 @@ class AttackModel(BatchModel):
         self.use_prob = use_prob
         self.model = None
         if name:
-            self.model = ModelFactory(name)
+            self.model = ModelFactory.get_by_name(name)
     def get_attack_logits(self, x):
         xp = self.attack_preprocess(x)
         logits = self.get_endpoints(xp,self.nb_classes)['Logits']

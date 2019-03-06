@@ -141,7 +141,8 @@ def vgg_16(inputs,
            is_training=True,
            dropout_keep_prob=0.5,
            spatial_squeeze=True,
-           scope='vgg_16'):
+           scope='vgg_16',
+           reuse=False):
   """Oxford Net VGG 16-Layers version D Example.
 
   Note: All the fully_connected layers have been transformed to conv2d layers.
@@ -160,7 +161,7 @@ def vgg_16(inputs,
   Returns:
     the last op containing the log predictions and end_points dict.
   """
-  with variable_scope.variable_scope(scope, 'vgg_16', [inputs]) as sc:
+  with variable_scope.variable_scope(scope, 'vgg_16', [inputs], reuse=reuse) as sc:
     end_points_collection = sc.original_name_scope + '_end_points'
     # Collect outputs for conv2d, fully_connected and max_pool2d.
     with arg_scope(

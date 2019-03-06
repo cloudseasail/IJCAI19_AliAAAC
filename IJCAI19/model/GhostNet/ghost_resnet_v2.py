@@ -64,7 +64,7 @@ from tensorflow.python.ops import variable_scope
 
 resnet_arg_scope = resnet_utils.resnet_arg_scope
 
-from GhostMaker import GhostMaker
+from .GhostMaker import GhostMaker
 GHOST=GhostMaker()
 
 @add_arg_scope

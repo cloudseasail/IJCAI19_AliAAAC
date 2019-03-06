@@ -1,4 +1,3 @@
-from .EmbeddedAttackModel import AttackModel
 from .BatchModel import BatchModel
 from .ModelFactory import ModelFactory
 
@@ -12,7 +11,7 @@ class DefenseModel(BatchModel):
         self.name = name
         self.model = None
         if name:
-            self.model = ModelFactory(name)
+            self.model = ModelFactory.get_by_name(name)
 
     def predict_preprocess(self, x):
         if self.model:

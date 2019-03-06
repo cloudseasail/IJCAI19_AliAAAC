@@ -2,26 +2,9 @@ import tensorflow as tf
 slim = tf.contrib.slim
 import numpy as np
 from tensorflow.contrib.slim.python.slim.nets import inception_v1, resnet_v1
-from . import slimvgg as vgg
-from tensorflow.contrib import slim
 from tensorflow.contrib.layers.python.layers import layers as layers_lib
 
-from GhostNet import ghost_resnet_v1
-
-
-class ModelFactory():
-    WEIGHT_DIR = '../weight/'
-    mapping = {
-        'inception_v1': factory_inception_v1,
-        'resnetv1_50': factory_resnetv1_50,
-        'vgg_16': factory_vgg_16,
-        'ghost_resnetv1_50': factory_ghost_resnetv1_50,
-    }
-    def __init__(self):
-        pass
-    def get_by_name(self, name):
-        return ModelFactory.mapping[name]
-
+from .GhostNet import ghost_resnet_v1, vgg
 
 class BaseModel():
     def __init__(self, name):
@@ -125,4 +108,21 @@ class factory_ghost_resnetv1_50(factory_resnetv1_50):
     def __init__(self, name):
         super().__init__(name=name)
         self._model['arg_scope'] = ghost_resnet_v1.resnet_arg_scope
-        self._model['graph'] = ghost_resnet_v1.resnet_v1_50,
+        self._model['graph'] = ghost_resnet_v1.resnet_v1_50
+
+
+
+
+class ModelFactory():
+    WEIGHT_DIR = '../weight/'
+    mapping = {
+        'inception_v1': factory_inception_v1,
+        'resnetv1_50': factory_resnetv1_50,
+        'vgg_16': factory_vgg_16,
+        'ghost_resnetv1_50': factory_ghost_resnetv1_50,
+    }
+    def __init__(self):
+        pass
+    @staticmethod
+    def get_by_name(name):
+        return ModelFactory.mapping[name](name=name)

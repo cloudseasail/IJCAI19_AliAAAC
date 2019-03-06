@@ -70,7 +70,7 @@ from tensorflow.python.ops import variable_scope
 
 resnet_arg_scope = resnet_utils.resnet_arg_scope
 
-from GhostMaker import GhostMaker
+from .GhostMaker import GhostMaker
 GHOST=GhostMaker()
 
 @add_arg_scope
@@ -122,7 +122,8 @@ def bottleneck(inputs,
     residual = layers.conv2d(
         residual, depth, [1, 1], stride=1, activation_fn=None, scope='conv3')
 
-    output = nn_ops.relu(GHOST.get_shortcut_weight(depth)*shortcut + residual)
+    ghost_weight = GHOST.get_shortcut_weight(depth)
+    output = nn_ops.relu(ghost_weight*shortcut + residual)
 
     return utils.collect_named_outputs(outputs_collections, sc.name, output)
 
