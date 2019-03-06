@@ -2,8 +2,8 @@ import sys
 sys.path.append("..")
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-from IJCAI19.module.official_model_v3 import OfficialModel
-OfficialModel.OFFICIAL_DATA_ROOT = '../../official_data/'
+from IJCAI19.module.official_model_v3 import ModelFactory
+ModelFactory.WEIGHT_DIR = '../../official_data/'
 
 from IJCAI19.module.EnhancedDataGenerator import *
 from IJCAI19.module.EmbeddedAttackModel import AttackModel, EmbeddedAttackModel

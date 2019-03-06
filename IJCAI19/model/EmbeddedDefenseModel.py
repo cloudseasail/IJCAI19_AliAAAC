@@ -1,6 +1,6 @@
 from .EmbeddedAttackModel import AttackModel
 from .BatchModel import BatchModel
-from .OfficialModel import OfficialModel
+from .ModelFactory import ModelFactory
 
 class EmbeddedDefenseModel():
     def __init__(self, name):
@@ -12,7 +12,7 @@ class DefenseModel(BatchModel):
         self.name = name
         self.model = None
         if name:
-            self.model = OfficialModel(name)
+            self.model = ModelFactory(name)
 
     def predict_preprocess(self, x):
         if self.model:

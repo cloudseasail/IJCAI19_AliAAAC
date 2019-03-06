@@ -1,6 +1,6 @@
 import tensorflow as tf
 from cleverhans.attacks import Model
-from .OfficialModel import OfficialModel
+from .ModelFactory import ModelFactory
 from .BatchModel import BatchModel
 # import sys
 # sys.path.append("../")
@@ -33,28 +33,19 @@ class EmbeddedAttackModel(CleverhansModel):
     def add_model(self, models=[]):
         self.models.append(models)
     def embedded_logits(self, x, nb_classes):
-        # embedded_logits = tf.zeros(shape=(None, nb_classes))
-        embedded_logits = None
+        embedded_logits = []
         for m in self.models:
             logits = m.get_attack_logits(x)
             logits = grad_norm(logits)
-            # print("embedded_logits", logits)
-            if embedded_logits is None:
-                embedded_logits = logits
-            else:
-                embedded_logits += logits
-        return embedded_logits/len(self.models)
+            embedded_logits.append(logits)
+        return tf.reduce_mean(embedded_logits, axis=0)
     def embedded_probs(self, x, nb_classes):
-        embedded_probs = None
+        embedded_probs = []
         for m in self.models:
             probs = m.get_attack_probs(x)
-            # probs = grad_norm(probs)
-            # print("embedded_probs", probs)
-            if embedded_probs is None:
-                embedded_probs = probs
-            else:
-                embedded_probs += probs
-        return embedded_probs/len(self.models)
+            #no grad normalize for probs!!
+            embedded_probs.append(probs)
+        return tf.reduce_mean(embedded_probs, axis=0)
 
     def attack_generate(self, sess, Method, params):
         self.sess = sess
@@ -92,7 +83,6 @@ class EmbeddedAttackModel(CleverhansModel):
 class AttackModel(BatchModel):
     def __init__(self, batch_shape=None, output_size=None, name='', use_prob=False):
         BatchModel.__init__(self, batch_shape=batch_shape, output_size=output_size, name=name, use_prob=use_prob)
-        OfficialModel.__init__(self, name=name)
         self.name = name
         self.nb_classes = output_size
         self.models = []
@@ -100,7 +90,7 @@ class AttackModel(BatchModel):
         self.use_prob = use_prob
         self.model = None
         if name:
-            self.model = OfficialModel(name)
+            self.model = ModelFactory(name)
     def get_attack_logits(self, x):
         xp = self.attack_preprocess(x)
         logits = self.get_endpoints(xp,self.nb_classes)['Logits']

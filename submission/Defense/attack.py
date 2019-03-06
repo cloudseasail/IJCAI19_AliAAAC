@@ -16,7 +16,7 @@ import tensorflow as tf
 from IJCAI19.module.utils import *
 from IJCAI19.module.utils_tf import * 
 from IJCAI19.model.EmbeddedDefenseModel import *
-from IJCAI19.model.OfficialModel import OfficialModel
+from IJCAI19.model.ModelFactory import ModelFactory
 
 tf.flags.DEFINE_string(
     'weight_path', 'IJCAI19/weight/', 'Path to checkpoint for inception network.')
@@ -37,7 +37,7 @@ FLAGS = tf.flags.FLAGS
 tf.app.flags.DEFINE_string('f', '', 'kernel')
 
 def defense(D):
-    OfficialModel.WEIGHT_DIR = FLAGS.weight_path
+    ModelFactory.WEIGHT_DIR = FLAGS.weight_path
     batch_shape = [FLAGS.batch_size, FLAGS.image_height, FLAGS.image_width, 3]
 
     # img_loader = ImageLoader(FLAGS.input_dir, batch_shape, label_size=None, format='png', labels=None)
