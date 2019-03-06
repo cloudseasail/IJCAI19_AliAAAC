@@ -4,10 +4,10 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 import os
 import sys
 sys.path.append("..")
-from module.EnhancedDataGenerator import MultiDataGenerator
-from module.utils import * 
-from module.utils_keras import  TensorBoardCallback
-from model.xception_keras import XceptionFineTune19, preprocess_input
+from IJCAI19.module.EnhancedDataGenerator import MultiDataGenerator
+from IJCAI19.module.utils import * 
+from IJCAI19.module.utils_keras import  TensorBoardCallback
+from IJCAI19.model.xception_keras import XceptionFineTune19, preprocess_input
 
 from keras import optimizers
 from keras import callbacks
@@ -58,12 +58,12 @@ print("MultiDataGenerator total length ", mutlgen_length)
 
 TOTAL_SIZE = mutlgen_length*BATCH_SIZE
 TRAIN_SIZE = int(TOTAL_SIZE * (1-VALIDATION_SPLIT))
-EPOCH_SIZE = 10
+EPOCH_SIZE = 40
 STEPS_PRE_EPOCH = TRAIN_SIZE//BATCH_SIZE
 print('TOTAL_SIZE {0} ,BATCH_SIZE {1}, STEPS_PRE_EPOCH {2},'.format(TOTAL_SIZE, BATCH_SIZE, STEPS_PRE_EPOCH))
 #debug
-STEPS_PRE_EPOCH = 1000
-EPOCH_INIT = 0
+STEPS_PRE_EPOCH = 500
+EPOCH_INIT = 8
 
 ################################################################
 ############## Model Symbolic: Transfer with fine tune  ########
@@ -82,18 +82,21 @@ model.summary()
 ################################################################
 ############## Training with params and callbacks    ########
 ################################################################
-def _lr_schedule(epoch):
-    lr = 1e-3
-    if epoch > 10:
-        lr *= 1e-2
-    elif epoch > 1:
-        lr *= 1e-1
-    print('Learning rate: ', lr)
-    return lr
+LR_SCHEULE = {
+    EPOCH_INIT: 1e-4,
+    0: 1e-3,
+    50: 1e-4,
+    100: 1e-5,
+    200: 1e-6
+}
 def lr_scheduler(epoch):
-    lr = _lr_schedule(epoch)
+    old_lr = K.get_value(model.optimizer.lr),
+    if epoch in LR_SCHEULE
+        lr = LR_SCHEULE[epoch]
+    else:
+        lr = old_lr
     K.set_value(model.optimizer.lr, lr)
-    print("lr changed from {0} to {1}".format(K.get_value(model.optimizer.lr), lr))
+    print("lr changed from {0} to {1}".format(old_lr, lr))
     return K.get_value(model.optimizer.lr)
 
 model.compile(loss='categorical_crossentropy',
@@ -102,9 +105,9 @@ model.compile(loss='categorical_crossentropy',
               metrics=['accuracy'])
 
 lrscheduler = callbacks.LearningRateScheduler(lr_scheduler)
-lrreducer = callbacks.ReduceLROnPlateau(monitor='val_loss', patience=3, mode='auto', min_lr=0.5e-6)
+lrreducer = callbacks.ReduceLROnPlateau(monitor='val_loss', patience=3, mode='auto', min_lr=1e-7)
 tensorboard = TensorBoardCallback(tensorboard_generator, BATCH_SIZE, "logs/train/")
-checkpointer = callbacks.ModelCheckpoint(filepath="logs/xception19.h5", verbose=1, save_best_only=True)
+checkpointer = callbacks.ModelCheckpoint(filepath=saved_model, verbose=1, save_best_only=True)
 history = model.fit_generator(
       train_generator,
       steps_per_epoch=STEPS_PRE_EPOCH,
@@ -116,7 +119,8 @@ history = model.fit_generator(
       verbose=1,
       initial_epoch=EPOCH_INIT)
       
-model.save(saved_model) # 把模型儲存到檔案
+# dont save fina mmodel,  becasuse best model already saved
+# model.save(saved_model) # 把模型儲存到檔案
 
 
 ################################################################

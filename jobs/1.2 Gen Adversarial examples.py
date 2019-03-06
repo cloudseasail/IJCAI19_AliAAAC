@@ -2,16 +2,16 @@ import sys
 sys.path.append("..")
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-from module.official_model_v3 import OfficialModel
+from IJCAI19.module.official_model_v3 import OfficialModel
 OfficialModel.OFFICIAL_DATA_ROOT = '../../official_data/'
 
-from module.EnhancedDataGenerator import *
-from module.EmbeddedAttackModel import AttackModel, EmbeddedAttackModel
-from module.gs_mim import GradSmoothMomentumIterativeMethod
+from IJCAI19.module.EnhancedDataGenerator import *
+from IJCAI19.module.EmbeddedAttackModel import AttackModel, EmbeddedAttackModel
+from IJCAI19.module.gs_mim import GradSmoothMomentumIterativeMethod
 
 
-from module.utils_tf import * 
-from module.utils import * 
+from IJCAI19.module.utils_tf import * 
+from IJCAI19.module.utils import * 
 import tensorflow as tf
 import time
 
