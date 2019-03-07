@@ -35,9 +35,9 @@ tf.flags.DEFINE_integer(
 FLAGS = tf.flags.FLAGS
 
 tf.app.flags.DEFINE_string('f', '', 'kernel')
+ModelFactory.WEIGHT_DIR = FLAGS.weight_path
 
 def defense(D):
-    ModelFactory.WEIGHT_DIR = FLAGS.weight_path
     batch_shape = [FLAGS.batch_size, FLAGS.image_height, FLAGS.image_width, 3]
 
     img_loader = ImageLoader(FLAGS.input_dir, batch_shape, targetlabel=False, label_size=FLAGS.num_classes, format='png', label_file=None)
@@ -48,8 +48,7 @@ def defense(D):
             ypred = D.predict_batch(X, None)
             for filename, label in zip(filenames, ypred):
                 out_file.write('{0},{1}\n'.format(filename, label))
-
-    D.clear_session()
+                print(filename, label)
 
 
 def main(_):
