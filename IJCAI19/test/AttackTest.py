@@ -12,7 +12,6 @@ from IJCAI19.model.EmbeddedAttackModel import AttackModel, EmbeddedAttackModel
 from cleverhans.attacks import FastGradientMethod
 from IJCAI19.module.gs_mim import GradSmoothMomentumIterativeMethod
 from IJCAI19.model.ModelFactory import ModelFactory
-from IJCAI19.model.BatchModel import PredictBatch
 
 FLAGS = tf.flags.FLAGS
 batch_shape = None
@@ -67,7 +66,7 @@ def Attack(A, M, attack_params, targetlabel):
 def Predict(T, dir, targetlabel):
     batch_shape = [FLAGS.batch_size, FLAGS.image_height, FLAGS.image_width, 3]
     img_loader = ImageLoader(dir, batch_shape, targetlabel=targetlabel, label_size=FLAGS.num_classes, format='png', label_file='dev.csv')
-    Yp, topK, acc = PredictBatch(T, img_loader)
+    Yp, topK, acc = T.evaluate_generator(img_loader, batch_shape, batch_shape)
     return Yp, topK, acc
 
 def Score(Yp, targetlabel):

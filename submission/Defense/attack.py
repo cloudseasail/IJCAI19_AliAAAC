@@ -45,7 +45,6 @@ def defense(D):
 
     config = gpu_session_config()
     with tf.Session(config=config) as sess:
-        D.predict_generate(sess)
         with open(FLAGS.output_file, 'w') as out_file:
             for filenames, X, _ in img_loader:
                 ypred = D.predict_batch(X, None)

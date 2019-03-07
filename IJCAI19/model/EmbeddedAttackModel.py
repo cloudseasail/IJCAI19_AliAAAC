@@ -1,7 +1,6 @@
 import tensorflow as tf
 from cleverhans.attacks import Model
 from .ModelFactory import ModelFactory
-from .BatchModel import BatchModel
 # import sys
 # sys.path.append("../")
 from ..module.utils import *
@@ -80,9 +79,8 @@ class EmbeddedAttackModel(CleverhansModel):
 
 
 
-class AttackModel(BatchModel):
+class AttackModel():
     def __init__(self, batch_shape=None, output_size=None, name='', use_prob=False):
-        BatchModel.__init__(self, batch_shape=batch_shape, output_size=output_size, name=name, use_prob=use_prob)
         self.name = name
         self.nb_classes = output_size
         self.models = []
@@ -90,7 +88,7 @@ class AttackModel(BatchModel):
         self.use_prob = use_prob
         self.model = None
         if name:
-            self.model = ModelFactory.get_by_name(name)
+            self.model = ModelFactory.create(name, output_size)
     def get_attack_logits(self, x):
         xp = self.attack_preprocess(x)
         logits = self.get_endpoints(xp,self.nb_classes)['Logits']
@@ -101,16 +99,19 @@ class AttackModel(BatchModel):
         return probs
     def predict_preprocess(self, x):
         if self.model:
-            return self.model.predict_preprocess(x)
+            return self.model.preprocess(x)
     def attack_preprocess(self, x):
         if self.model:
-            return self.model.attack_preprocess(x)
+            return self.model.preprocess(x)
     def load_weight(self, *arg, **kwargs):
         if self.model:
             return self.model.load_weight(*arg, **kwargs)
     def get_endpoints(self, *arg, **kwargs):
         if self.model:
             return self.model.get_endpoints(*arg, **kwargs)
+    def evaluate_generator(self, *arg, **kwargs):
+        if self.model:
+             return self.model.evaluate_generator(*arg, **kwargs)
 
 
 

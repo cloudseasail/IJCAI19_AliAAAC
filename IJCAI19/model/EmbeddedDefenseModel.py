@@ -1,17 +1,15 @@
-from .BatchModel import BatchModel
 from .ModelFactory import ModelFactory
 
 class EmbeddedDefenseModel():
     def __init__(self, name):
         self.name = name
 
-class DefenseModel(BatchModel):
+class DefenseModel():
     def __init__(self, batch_shape=None, output_size=None, name='', use_prob=False):
-        BatchModel.__init__(self, batch_shape=batch_shape, output_size=output_size, name=name, use_prob=use_prob)
         self.name = name
         self.model = None
         if name:
-            self.model = ModelFactory.get_by_name(name)
+            self.model = ModelFactory.create(name, batch_shape, output_size, use_prob)
 
     def predict_preprocess(self, x):
         if self.model:
