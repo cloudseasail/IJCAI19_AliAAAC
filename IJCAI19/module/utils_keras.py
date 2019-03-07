@@ -1,5 +1,5 @@
 
-from keras.callbacks import TensorBoard
+from keras.callbacks import TensorBoard, ModelCheckpoint
 from datetime import datetime
 import numpy as np
 
@@ -47,3 +47,10 @@ def TensorBoardCallback(gen, batch_size, log_dir):
                     log_dir=log_dir, histogram_freq=0,
                     write_graph=True, write_images=False,  update_freq='batch')
     return tensorboard
+
+
+class ModelCheckpointWrapper(ModelCheckpoint):
+    def __init__(self, best_init=None, *arg, **kwagrs):
+        super().__init__(*arg, **kwagrs)
+        if best_init is not None:
+            self.best = best_init
