@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import os
 from keras.models import load_model
+import keras.backend as K
 
 def unify_preprocess(imgs, undo=False):
     if (undo):
@@ -41,7 +42,7 @@ class KerasModel():
     def preprocess(self, imgs):
         imgs = self._input_resize(imgs)
         return self._model['preprocess'](imgs)
-    def predict_create_graph(self, sess, batch_shape, use_prob=False, TOP_K=1):
+    def predict_create_graph(self, batch_shape, use_prob=False, TOP_K=1):
         pass
     def predict_batch(self, X, Y=None):
         X = self.preprocess(X)
@@ -60,13 +61,21 @@ class KerasModel():
             total_ypred = total_ypred+[ypred]
             total_correct += X[ypred == Y.argmax(1)].shape[0]
             total_size+= X.shape[0]
-        total_accuracy = total_correct/total_size
-        print("size {0}, Accuracy {0}".format(total_size, total_accuracy))
+            print(total_correct, total_size)
+        total_accuracy = float(total_correct/total_size)
         return np.concatenate(total_ypred), None, total_accuracy
+    def clear_session(self):
+        K.clear_session()
+        del self.model
+        self.model = None
+        tf.reset_default_graph()
+    def reload(self):
+        self.clear_session()
+        self.model = self._load_model(self.weight_path)
 
 
 class factory_keras_xception_19(KerasModel):
     def __init__(self, name, nb_classes):
         super().__init__(name)
-        path = KerasModel.WEIGHT_DIR + 'xception_19/keras_xception_19.h5'
-        self.model = self._load_model(path)
+        self.weight_path = KerasModel.WEIGHT_DIR + 'xception_19/keras_xception_19.h5'
+        self.model = self._load_model(self.weight_path)

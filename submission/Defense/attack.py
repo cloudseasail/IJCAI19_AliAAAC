@@ -40,18 +40,16 @@ def defense(D):
     ModelFactory.WEIGHT_DIR = FLAGS.weight_path
     batch_shape = [FLAGS.batch_size, FLAGS.image_height, FLAGS.image_width, 3]
 
-    # img_loader = ImageLoader(FLAGS.input_dir, batch_shape, label_size=None, format='png', labels=None)
     img_loader = ImageLoader(FLAGS.input_dir, batch_shape, targetlabel=False, label_size=FLAGS.num_classes, format='png', label_file=None)
 
-    config = gpu_session_config()
-    with tf.Session(config=config) as sess:
-        with open(FLAGS.output_file, 'w') as out_file:
-            for filenames, X, _ in img_loader:
-                ypred = D.predict_batch(X, None)
-                for filename, label in zip(filenames, ypred.argmax(1)):
-                    out_file.write('{0},{1}\n'.format(filename, label))
 
-    tf.reset_default_graph()
+    with open(FLAGS.output_file, 'w') as out_file:
+        for filenames, X, _ in img_loader:
+            ypred = D.predict_batch(X, None)
+            for filename, label in zip(filenames, ypred):
+                out_file.write('{0},{1}\n'.format(filename, label))
+
+    D.clear_session()
 
 
 def main(_):
@@ -59,9 +57,11 @@ def main(_):
     tf.logging.set_verbosity(tf.logging.WARN)
 
     batch_shape = [FLAGS.batch_size, FLAGS.image_height, FLAGS.image_width, 3]
-    name = "inception_v1"
-    D = MSBModel(msb=8, batch_shape=batch_shape, output_size=FLAGS.num_classes, name=name, use_prob=True)
+    name = "keras_xception_19"
+    D = ModelFactory.create(name=name, nb_classes=FLAGS.num_classes)
     defense(D)
+
+    D.clear_session()
 
     print("done")
 

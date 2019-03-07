@@ -16,6 +16,7 @@ class BaseModel():
         self.name = name
         self.nb_classes = nb_classes
         self.predict_graph = False
+        self.sess = None
     def get_endpoints(self, x, nb_classes=None):
         with slim.arg_scope(self._model['arg_scope']()):
             # print("get_endpoints", self.name)
@@ -48,8 +49,16 @@ class BaseModel():
     def preprocess(self, imgs):
         imgs = self._input_resize(imgs)
         return self._model['preprocess'](imgs)
-    def predict_create_graph(self, sess, batch_shape, use_prob=False, TOP_K=1):
-        self.sess = sess
+    def clear_session(self):
+        if self.sess:
+            self.sess.close()
+        self.sess = None
+        tf.reset_default_graph()
+    def predict_create_graph(self, batch_shape, use_prob=False, TOP_K=1):
+        if self.sess:
+            self.clear_session()
+        config = gpu_session_config()
+        self.sess =  tf.Session(config=config)
         self.x = tf.placeholder(dtype=tf.float32, shape=(None, batch_shape[1],batch_shape[2],batch_shape[3]), name='input')
         self.y = tf.placeholder(dtype=tf.float32, shape=(None, self.nb_classes), name='output')
         x = self.preprocess(self.x)
@@ -80,7 +89,7 @@ class BaseModel():
         p=Profile('Predict ')
         config = gpu_session_config()
         with tf.Session(config=config) as sess:
-            self.predict_create_graph(sess, batch_shape, use_prob)
+            self.predict_create_graph(batch_shape, use_prob)
             for _,X,Y in generator:
                 batch_size =  X.shape[0]
                 if Y is not None:

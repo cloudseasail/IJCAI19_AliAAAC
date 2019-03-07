@@ -1,5 +1,9 @@
-$tag="d2.1.4"
-$track = "d"
+$tag="d2.3.4"
+
 cp ..\..\IJCAI19 .\IJCAI19 -Force -Recurse
-docker build -f Dockerfile -t registry.cn-hangzhou.aliyuncs.com/haifan_deep/ijcai2019_pilot:$tag .\
+
+docker build -f Dockerfile -t registry.cn-shanghai.aliyuncs.com/haifan_deep/ijcai2019:$tag .\
+
 rm .\IJCAI19 -Recurse
+
+docker push registry.cn-shanghai.aliyuncs.com/haifan_deep/ijcai2019:$tag
