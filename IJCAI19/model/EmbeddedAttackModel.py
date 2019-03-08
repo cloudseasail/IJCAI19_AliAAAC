@@ -50,7 +50,7 @@ class EmbeddedAttackModel(CleverhansModel):
         attacker = Method(self, sess=self.sess)
         self.op_xadv = attacker.generate(self.op_x, **params)
         for m in self.models:
-            m.load_weight()
+            m.load_weight(sess)
         return self.op_xadv 
     def attack_batch(self, X, Y=None):
         xadv = self.sess.run(self.op_xadv, feed_dict={self.op_x: X, self.op_y: Y})

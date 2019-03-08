@@ -30,14 +30,15 @@ class BaseModel():
         return end_points
     def _get_weight(self):
         return BaseModel.WEIGHT_DIR + self._model['checkpoint_dir']
-    def load_weight(self, checkpoint_path=''):
+    def load_weight(self, sess=None, checkpoint_path=''):
         # if self.weight_loaded == False:
         if True:
             saver = tf.train.Saver(slim.get_model_variables(scope=self._model['var_scope']))
             if checkpoint_path == '':
                 checkpoint_path = self._get_weight()
-            sess = self.sess
-            # sess = tf.get_default_session()
+            if sess is None:
+                sess = self.sess
+                # sess = tf.get_default_session()
             saver.restore(sess, checkpoint_path)
             # saver.restore(self.attack_sess, checkpoint_path)
             # self.weight_loaded = True
@@ -117,7 +118,6 @@ class BaseModel():
                 total_ypred = ypred
             else:   
                 total_ypred = np.concatenate((total_ypred, ypred), axis=0)
-            print(ypred.shape, total_ypred.shape)
         p.stop()
 
         if total_topk is not None:
