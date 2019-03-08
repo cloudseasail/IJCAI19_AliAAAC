@@ -87,8 +87,16 @@ class DefenseDataGenerator(ImageDataGenerator):
         return np.random.randint((_max-_min)//2+1, size=n)*2 + _min
     def msb_defense(self, x):
         msb = self._msb_random(4, self.msb_max, x.shape[0])
-        msb = msb.reshape([x.shape[0],1,1,1])
+        if len(x.shape) == 4:
+            msb = msb.reshape([x.shape[0],1,1,1])
+        else:
+            msb = msb.reshape([x.shape[0],1,1])
         return (x//msb)*msb + (msb/2)
+    def random_transform(self, x):
+        x = super().random_transform(x)
+        x = self._msb_apply(x)
+        return x
+
 
 
 class MultiDataGenerator():

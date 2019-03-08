@@ -79,7 +79,6 @@ class AttackModel():
     def __init__(self, batch_shape=None, output_size=None, name='', use_prob=False):
         self.name = name
         self.nb_classes = output_size
-        self.models = []
         self.batch_shape = batch_shape
         self.use_prob = use_prob
         self.model = None
@@ -107,7 +106,7 @@ class AttackModel():
             return self.model.get_endpoints(*arg, **kwargs)
     def evaluate_generator(self, *arg, **kwargs):
         if self.model:
-             return self.model.evaluate_generator(*arg, **kwargs)
+            return self.model.evaluate_generator(*arg, **kwargs)
 
 
 

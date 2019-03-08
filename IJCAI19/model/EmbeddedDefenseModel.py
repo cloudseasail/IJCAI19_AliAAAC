@@ -1,36 +1,36 @@
+import numpy as np
 from .ModelFactory import ModelFactory
+# from .RandomDefense import RandomDefense
 
 class EmbeddedDefenseModel():
-    def __init__(self, name):
+    def __init__(self, name=""):
         self.name = name
-
-class DefenseModel():
-    def __init__(self, batch_shape=None, output_size=None, name='', use_prob=False):
-        self.name = name
-        self.model = None
-        if name:
-            self.model = ModelFactory.create(name, batch_shape, output_size, use_prob)
-
-    def predict_preprocess(self, x):
-        if self.model:
-            return self.model.predict_preprocess(x)
-    def attack_preprocess(self, x):
-        if self.model:
-            return self.model.attack_preprocess(x)
-    def load_weight(self, *arg, **kwargs):
-        if self.model:
-            return self.model.load_weight(*arg, **kwargs)
-    def get_endpoints(self, *arg, **kwargs):
-        if self.model:
-            return self.model.get_endpoints(*arg, **kwargs)
-
-class MSBModel(DefenseModel):
-    def __init__(self, msb=8, *arg, **kwargs):
-        print("MSBModel", arg, kwargs)
-        DefenseModel.__init__(self, *arg, **kwargs)
-        self.msb = msb
-    def predict_preprocess(self, x):
-        x = self.msb_apply(x, self.msb)
-        return super().predict_preprocess(x) 
-    def msb_apply(self, x, msb):
-        return (x//msb)*msb + (msb/2)
+        self.models = []
+        self.weights = []
+    def add_model(self, model, weight=1.0):
+        self.models.append(model)
+        self.weights.append(weight)
+    def predict_create_graph(self, batch_shape):
+        for m in self.models:
+            m.predict_create_graph(batch_shape, use_prob=True)
+    def predict_batch(self, X, repeat=1.0):
+        Yp_batch = []
+        for idx in range(len(self.models)):
+            m = self.models[idx]
+            w = self.weights[idx]
+            for ri in range(int(repeat)):
+                yp = m.predict_batch(X)
+                Yp_batch += ([yp*w])
+        Yp_batch = np.mean(Yp_batch, axis=0)
+        return Yp_batch
+    def predict_generator(self, generator, batch_shape, repeat=1.0):
+        Ypred = []
+        Yprob = []
+        self.predict_create_graph(batch_shape)
+        for _,X,Y in generator:
+            Yp_batch = self.predict_batch(X, repeat)
+            Ypred+= [Yp_batch.argmax(1)]
+            Yprob+= [Yp_batch.max(axis=1)]
+        Ypred = np.concatenate(Ypred, axis=0)
+        Yprob = np.concatenate(Yprob, axis=0)
+        return Ypred,Yprob

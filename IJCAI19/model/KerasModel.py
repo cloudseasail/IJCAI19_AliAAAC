@@ -43,6 +43,8 @@ class KerasModel():
         imgs = self._input_resize(imgs)
         return self._model['preprocess'](imgs)
     def predict_create_graph(self, batch_shape, use_prob=False, TOP_K=1):
+        if (use_prob):
+            print("Keras Model,  use_prob not implemented!!")
         pass
     def predict_batch(self, X, Y=None):
         X = self.preprocess(X)

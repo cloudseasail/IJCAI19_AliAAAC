@@ -81,7 +81,16 @@ class BaseModel():
             return ypred, topk, accuracy
         else:
             ypred = self.sess.run(self.op_ypred, feed_dict={self.x: X})
-            return ypred  
+            return ypred 
+    def predict_generator(self, generator, batch_shape, use_prob=False):
+        p=Profile('Predict ')
+        total_ypred = []
+        self.predict_create_graph(batch_shape, use_prob)
+        for _,X,Y in generator:
+            ypred = self.predict_batch(X, None)
+            total_ypred += [ypred]
+        p.stop()
+        return np.concatenate(total_ypred)
     def evaluate_generator(self, generator, batch_shape, use_prob=False):
         batch_iter = 0
         total_correct = 0

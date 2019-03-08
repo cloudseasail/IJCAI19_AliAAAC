@@ -47,12 +47,26 @@ def InitGlobal():
 
     batch_shape = [FLAGS.batch_size, FLAGS.image_height, FLAGS.image_width, 3]
 
-def Defense(A, M, attack_params, targetlabel):
+def Defense(D, path, repeat=1):
     ModelFactory.WEIGHT_DIR = FLAGS.weight_path
     batch_shape = [FLAGS.batch_size, FLAGS.image_height, FLAGS.image_width, 3]
-    p=Profile('Attack ')
-
+    p=Profile('Defense ')
+    img_loader = ImageLoader(path, batch_shape, targetlabel=False, label_size=FLAGS.num_classes, format='png', label_file='dev.csv')
+    ypred, yprob = D.predict_generator(img_loader, batch_shape, repeat=repeat)
     p.stop()
+    return ypred, yprob
+
+def DefenseWrite(D, repeat=1):
+    ModelFactory.WEIGHT_DIR = FLAGS.weight_path
+    batch_shape = [FLAGS.batch_size, FLAGS.image_height, FLAGS.image_width, 3]
+    img_loader = ImageLoader(FLAGS.input_dir, batch_shape, targetlabel=False, label_size=FLAGS.num_classes, format='png', label_file=None)
+    D.predict_create_graph(batch_shape)
+    with open(FLAGS.output_file, 'w') as out_file:
+        for filenames, X, _ in img_loader:
+            ypred = D.predict_batch(X, repeat)
+            ypred = ypred.argmax(1)
+            for filename, label in zip(filenames, ypred):
+                out_file.write('{0},{1}\n'.format(filename, label))
 
 def Validate():
     all_shape = [110, FLAGS.image_height, FLAGS.image_width, 3]
