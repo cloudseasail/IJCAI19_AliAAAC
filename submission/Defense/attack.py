@@ -17,6 +17,7 @@ from IJCAI19.module.utils import *
 from IJCAI19.module.utils_tf import * 
 from IJCAI19.model.EmbeddedDefenseModel import *
 from IJCAI19.model.ModelFactory import ModelFactory
+from IJCAI19.model.RandomDefense import RandomDefense
 
 tf.flags.DEFINE_string(
     'weight_path', 'IJCAI19/weight/', 'Path to checkpoint for inception network.')
@@ -37,15 +38,16 @@ FLAGS = tf.flags.FLAGS
 tf.app.flags.DEFINE_string('f', '', 'kernel')
 ModelFactory.WEIGHT_DIR = FLAGS.weight_path
 
-def defense(D):
+def defense(D, repeat=1):
+    ModelFactory.WEIGHT_DIR = FLAGS.weight_path
     batch_shape = [FLAGS.batch_size, FLAGS.image_height, FLAGS.image_width, 3]
-
     img_loader = ImageLoader(FLAGS.input_dir, batch_shape, targetlabel=False, label_size=FLAGS.num_classes, format='png', label_file=None)
 
-    D.predict_create_graph(batch_shape, use_prob=False)
+    D.predict_create_graph(batch_shape)
     with open(FLAGS.output_file, 'w') as out_file:
         for filenames, X, _ in img_loader:
-            ypred = D.predict_batch(X, None)
+            ypred = D.predict_batch(X, repeat)
+            ypred = ypred.argmax(1)
             for filename, label in zip(filenames, ypred):
                 out_file.write('{0},{1}\n'.format(filename, label))
                 # print(filename, label)
@@ -56,11 +58,41 @@ def main(_):
     tf.logging.set_verbosity(tf.logging.WARN)
 
     batch_shape = [FLAGS.batch_size, FLAGS.image_height, FLAGS.image_width, 3]
-    name = "keras_xception_19"
-    D = ModelFactory.create(name=name, nb_classes=FLAGS.num_classes)
-    defense(D)
+    name = "inception_v1"
+    T1 = RandomDefense(FLAGS.num_classes, name=name)
+    T1.random(
+            msb_max=16, msb_rate=1, 
+            rotation_range=20,
+            width_shift_range=0.05,
+            height_shift_range=0.05,
+    #         shear_range=0.05
+    )
+    name = "resnetv1_50"
+    T2 = RandomDefense(FLAGS.num_classes, name=name)
+    T2.random(
+            msb_max=16, msb_rate=1, 
+            rotation_range=20,
+            width_shift_range=0.05,
+            height_shift_range=0.05,
+    #         shear_range=0.05
+    )
+    name = "vgg_16"
+    T3 = RandomDefense(FLAGS.num_classes, name=name)
+    T3.random(
+            msb_max=16, msb_rate=1, 
+            rotation_range=20,
+            width_shift_range=0.05,
+            height_shift_range=0.05,
+    #         shear_range=0.05
+    )
 
-    D.clear_session()
+
+    D = EmbeddedDefenseModel("")
+    D.add_model(T1, weight=1)
+    D.add_model(T2, weight=1)
+    D.add_model(T3, weight=1)
+
+    defense(D, repeat=10)
 
     print("done")
 

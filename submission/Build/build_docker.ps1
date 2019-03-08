@@ -1,7 +1,7 @@
-$tag="t2.3.3"
+$tag="d2.3.6"
 # $folder="..\NonTargetAttack"
-$folder="..\TargetAttack"
-# $folder="..\Defense"
+# $folder="..\TargetAttack"
+$folder="..\Defense"
 
 cp ..\..\IJCAI19 .\IJCAI19 -Force -Recurse
 cp $folder\run.sh .\run.sh -Force 
