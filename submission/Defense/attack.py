@@ -42,13 +42,13 @@ def defense(D):
 
     img_loader = ImageLoader(FLAGS.input_dir, batch_shape, targetlabel=False, label_size=FLAGS.num_classes, format='png', label_file=None)
 
-
+    D.predict_create_graph(batch_shape, use_prob=False)
     with open(FLAGS.output_file, 'w') as out_file:
         for filenames, X, _ in img_loader:
             ypred = D.predict_batch(X, None)
             for filename, label in zip(filenames, ypred):
                 out_file.write('{0},{1}\n'.format(filename, label))
-                print(filename, label)
+                # print(filename, label)
 
 
 def main(_):

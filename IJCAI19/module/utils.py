@@ -12,27 +12,6 @@ def calc_l2(x, xadv):
     diff = x.reshape((-1, 3)) - xadv.reshape((-1, 3))
     distance = np.mean(np.sqrt(np.sum((diff ** 2), axis=1)))
     return distance
-def calc_score_slow(x, xadv, y, yadv):
-    score = 0
-    for i in range(x.shape[0]):
-        if y[i] == yadv[i]:
-            score += 128
-        else:
-            score += calc_l2(x,xadv)
-    return score/x.shape[0]
-def calc_score(x, xadv, y, yadv, target=False):
-    if target:
-        succ = (y == yadv)
-    else:
-        succ = (y != yadv)
-    succ_num = x[succ].shape[0]
-    succ_mean = calc_l2(x[succ],xadv[succ])
-    succ_score = succ_mean*succ_num
-    fail_score = 128* (x.shape[0] - succ_num)
-    # print(succ_num, succ_mean, fail_score)
-    score = (succ_score+fail_score)/x.shape[0]
-    succ = succ_num/x.shape[0]
-    return score, succ
 
 def mem_data_generater(X,Y, batch_shape=None, label_shape=(None,110)):
     batch_size = batch_shape[0]

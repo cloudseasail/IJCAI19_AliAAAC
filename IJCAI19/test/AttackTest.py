@@ -54,19 +54,20 @@ def Attack(A, M, attack_params, targetlabel):
     img_saver = ImageSaver(FLAGS.output_dir, save_format='png', save_prefix='', scale=False)
 
     config = gpu_session_config()
-    with tf.Session(config=config) as sess:
-        A.attack_generate(sess, M, attack_params)
-        for filenames, X, Y in img_loader:
-            Xadv = A.attack_batch(X, Y)
-            for i in range(Xadv.shape[0]):
-                img_saver.save_array(filenames[i], Xadv[i])
+    sess = tf.Session(config=config)
+    A.attack_generate(sess, M, attack_params)
+    for filenames, X, Y in img_loader:
+        Xadv = A.attack_batch(X, Y)
+        for i in range(Xadv.shape[0]):
+            img_saver.save_array(filenames[i], Xadv[i])
+    sess.close()
     tf.reset_default_graph()
     p.stop()
 
 def Predict(T, dir, targetlabel):
     batch_shape = [FLAGS.batch_size, FLAGS.image_height, FLAGS.image_width, 3]
     img_loader = ImageLoader(dir, batch_shape, targetlabel=targetlabel, label_size=FLAGS.num_classes, format='png', label_file='dev.csv')
-    Yp, topK, acc = T.evaluate_generator(img_loader, batch_shape, batch_shape)
+    Yp, topK, acc = T.evaluate_generator(img_loader, batch_shape, use_prob=False)
     return Yp, topK, acc
 
 def Score(Yp, targetlabel):
@@ -81,3 +82,26 @@ def Score(Yp, targetlabel):
     score, succ =  calc_score(X, Xadv, Yadv.argmax(1), Yp, target=targetlabel)
     print("Mean L2 %.4f,  Score %.4f, Attack Success Rate %.4f" % (calc_l2(X, Xadv), score, succ ))
     return X, Y, Xadv, Yadv
+
+
+def calc_score_slow(x, xadv, y, yadv):
+    score = 0
+    for i in range(x.shape[0]):
+        if y[i] == yadv[i]:
+            score += 128
+        else:
+            score += calc_l2(x,xadv)
+    return score/x.shape[0]
+def calc_score(x, xadv, y, yadv, target=False):
+    if target:
+        succ = (y == yadv)
+    else:
+        succ = (y != yadv)
+    succ_num = x[succ].shape[0]
+    succ_mean = calc_l2(x[succ],xadv[succ])
+    succ_score = succ_mean*succ_num
+    fail_score = 128* (x.shape[0] - succ_num)
+    # print(succ_num, succ_mean, fail_score)
+    score = (succ_score+fail_score)/x.shape[0]
+    succ = succ_num/x.shape[0]
+    return score, succ

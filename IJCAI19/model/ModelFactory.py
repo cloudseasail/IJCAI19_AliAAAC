@@ -36,7 +36,9 @@ class BaseModel():
             saver = tf.train.Saver(slim.get_model_variables(scope=self._model['var_scope']))
             if checkpoint_path == '':
                 checkpoint_path = self._get_weight()
-            saver.restore(tf.get_default_session(), checkpoint_path)
+            sess = self.sess
+            # sess = tf.get_default_session()
+            saver.restore(sess, checkpoint_path)
             # saver.restore(self.attack_sess, checkpoint_path)
             # self.weight_loaded = True
     def _input_resize(self, imgs):
@@ -87,29 +89,27 @@ class BaseModel():
         total_ypred =None
         total_topk = None
         p=Profile('Predict ')
-        config = gpu_session_config()
-        with tf.Session(config=config) as sess:
-            self.predict_create_graph(batch_shape, use_prob)
-            for _,X,Y in generator:
-                batch_size =  X.shape[0]
-                if Y is not None:
-                    ypred, topk, accuracy = self.predict_batch(X, Y)
-                    total_correct += (accuracy*batch_size)
-                    if total_topk is None:
-                        total_topk = topk
-                    else:   
-                        total_topk = np.concatenate((total_topk, topk), axis=0)
-                else:
-                    ypred = self.predict_batch(X, None)
-
-                batch_iter +=1
-                total_size += batch_size
-                if total_ypred is None:
-                    total_ypred = ypred
+        self.predict_create_graph(batch_shape, use_prob)
+        for _,X,Y in generator:
+            batch_size =  X.shape[0]
+            if Y is not None:
+                ypred, topk, accuracy = self.predict_batch(X, Y)
+                total_correct += (accuracy*batch_size)
+                if total_topk is None:
+                    total_topk = topk
                 else:   
-                    total_ypred = np.concatenate((total_ypred, ypred), axis=0)
+                    total_topk = np.concatenate((total_topk, topk), axis=0)
+            else:
+                ypred = self.predict_batch(X, None)
+
+            batch_iter +=1
+            total_size += batch_size
+            if total_ypred is None:
+                total_ypred = ypred
+            else:   
+                total_ypred = np.concatenate((total_ypred, ypred), axis=0)
+            print(ypred.shape, total_ypred.shape)
         p.stop()
-        tf.reset_default_graph()
 
         if total_topk is not None:
             total_accuracy = total_correct/total_size

@@ -55,8 +55,8 @@ def attack(M, attack_params, targetlabel):
 
     A = EmbeddedAttackModel(batch_shape, FLAGS.num_classes)
     A.add_model(T1)
-    A.add_model(T2)
-    A.add_model(T3)
+    # A.add_model(T2)
+    # A.add_model(T3)
 
     config = gpu_session_config()
     with tf.Session(config=config) as sess:

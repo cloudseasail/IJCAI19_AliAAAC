@@ -25,10 +25,6 @@ class EmbeddedAttackModel(CleverhansModel):
         super(EmbeddedAttackModel, self).__init__(nb_classes=output_size)
         self.models = []
         self.batch_shape = batch_shape
-        # with self.sess.as_default():
-        #     with self.sess.graph.as_default():   
-        #         self.op_x = tf.placeholder(dtype=tf.float32, shape=(None, self.batch_shape[1],self.batch_shape[2],self.batch_shape[3]), name='input')
-        #         self.op_y = tf.placeholder(dtype=tf.float32, shape=(None, self.nb_classes), name='output')
     def add_model(self, models=[]):
         self.models.append(models)
     def embedded_logits(self, x, nb_classes):
