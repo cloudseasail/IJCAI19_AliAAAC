@@ -2,11 +2,11 @@ import sys
 sys.path.append("..")
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-from IJCAI19.module.official_model_v3 import ModelFactory
-ModelFactory.WEIGHT_DIR = '../../official_data/'
+from IJCAI19.model.ModelFactory import ModelFactory
+ModelFactory.WEIGHT_DIR = '../IJCAI19/weight/'
 
 from IJCAI19.module.EnhancedDataGenerator import *
-from IJCAI19.module.EmbeddedAttackModel import AttackModel, EmbeddedAttackModel
+from IJCAI19.model.EmbeddedAttackModel import AttackModel, EmbeddedAttackModel
 from IJCAI19.module.gs_mim import GradSmoothMomentumIterativeMethod
 
 
@@ -19,7 +19,7 @@ IMAGE_SIZE = 299
 BATCH_SIZE = 4
 LABEL_SIZE = 110
 good_dir = '../../official_data/prepared_train_data/good/'
-adv_dir = '../../official_data/prepared_train_data/adv/'
+adv_dir = '../../official_data/prepared_train_data/adv2/'
 batch_shape = (BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, 3)
 
 
@@ -82,14 +82,27 @@ def generate_wrapper(M, T, epr,n, max_sample_size=1000):
     return X,Xadv
 
 gen_size = 1000
-X,Xadv = generate_wrapper(M, T1, 0.02, 10, gen_size)
-X,Xadv = generate_wrapper(M, T1, 0.06, 10, gen_size)
-X,Xadv = generate_wrapper(M, T1, 0.1, 10, gen_size)
+# X,Xadv = generate_wrapper(M, T1, 0.02, 10, gen_size)
+# X,Xadv = generate_wrapper(M, T1, 0.06, 10, gen_size)
+# X,Xadv = generate_wrapper(M, T1, 0.1, 10, gen_size)
 
-X,Xadv = generate_wrapper(M, T2, 0.02, 5, gen_size)
-X,Xadv = generate_wrapper(M, T2, 0.06, 5, gen_size)
-X,Xadv = generate_wrapper(M, T2, 0.1, 5, gen_size)
+# X,Xadv = generate_wrapper(M, T2, 0.02, 5, gen_size)
+# X,Xadv = generate_wrapper(M, T2, 0.06, 5, gen_size)
+# X,Xadv = generate_wrapper(M, T2, 0.1, 5, gen_size)
 
-X,Xadv = generate_wrapper(M, T3, 0.02, 2, gen_size)
-X,Xadv = generate_wrapper(M, T3, 0.06, 2, gen_size)
-X,Xadv = generate_wrapper(M, T3, 0.1, 2, gen_size)
+# X,Xadv = generate_wrapper(M, T3, 0.02, 2, gen_size)
+# X,Xadv = generate_wrapper(M, T3, 0.06, 2, gen_size)
+# X,Xadv = generate_wrapper(M, T3, 0.1, 2, gen_size)
+
+
+X,Xadv = generate_wrapper(M, T1, 0.04, 10, gen_size)
+X,Xadv = generate_wrapper(M, T1, 0.05, 10, gen_size)
+X,Xadv = generate_wrapper(M, T1, 0.08, 10, gen_size)
+
+X,Xadv = generate_wrapper(M, T2, 0.04, 10, gen_size)
+X,Xadv = generate_wrapper(M, T2, 0.05, 10, gen_size)
+X,Xadv = generate_wrapper(M, T2, 0.08, 10, gen_size)
+
+X,Xadv = generate_wrapper(M, T3, 0.04, 5, gen_size)
+X,Xadv = generate_wrapper(M, T3, 0.05, 5, gen_size)
+X,Xadv = generate_wrapper(M, T3, 0.08, 5, gen_size)

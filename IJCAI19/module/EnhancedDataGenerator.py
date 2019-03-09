@@ -101,8 +101,8 @@ class DefenseDataGenerator(ImageDataGenerator):
 
 class MultiDataGenerator():
     # sources = {"good":{ "directory", "shuffle_num"}}
-    def __init__(self, sources, *args, **kwargs):
-        self.source_names = ['good', 'bad', 'adv']
+    def __init__(self, sources,  source_names,  *args, **kwargs):
+        self.source_names = source_names
         self.sources = sources
         if "msb_max" in kwargs:
             self.msb_max = kwargs["msb_max"]

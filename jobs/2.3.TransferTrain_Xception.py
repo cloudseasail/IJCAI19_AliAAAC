@@ -29,16 +29,20 @@ sources = {
         'directory': '../../official_data/prepared_train_data/good/',
         'shuffle_num': 20,
     },
-    'bad':{
-        'directory': '../../official_data/prepared_train_data/bad/',
-        'shuffle_num': 1,
-    },
+    # 'bad':{
+    #     'directory': '../../official_data/prepared_train_data/bad/',
+    #     'shuffle_num': 1,
+    # },
     'adv':{
         'directory': '../../official_data/prepared_train_data/adv/',
-        'shuffle_num': 2,
+        'shuffle_num': 1,
+    },
+    'adv2':{
+        'directory': '../../official_data/prepared_train_data/adv2/',
+        'shuffle_num': 1,
     },
 }
-MDG = MultiDataGenerator(sources, 
+MDG = MultiDataGenerator(sources,  source_names=['adv', 'good', 'adv2'],
                     msb_max=12, msb_rate=0.1, 
                     rotation_range=20,
                     width_shift_range=0.1,
@@ -100,7 +104,8 @@ LR_SCHEULE_TABLE = {
     0: 1e-3,
     50: 1e-5,
     100: 5e-6,
-    200: 1e-6
+    200: 1e-6,
+    300: 1e-7
 }
 def _lr_schedule(epoch, old_lr=1e-3):
     if epoch in LR_SCHEULE_TABLE:
@@ -118,7 +123,7 @@ if EPOCH_INIT == 0:
                 metrics=['accuracy'])
 
 lrscheduler = callbacks.LearningRateScheduler(_lr_schedule)
-lrreducer = callbacks.ReduceLROnPlateau(monitor='val_loss', patience=5, mode='auto', min_lr=1e-7)
+lrreducer = callbacks.ReduceLROnPlateau(monitor='val_loss', patience=5, mode='auto', min_lr=1e-8)
 tensorboard = TensorBoardCallback(tensorboard_generator, BATCH_SIZE, "logs/train/")
 # checkpointer = callbacks.ModelCheckpoint(filepath=saved_model, verbose=1, save_best_only=True)
 checkpointer = ModelCheckpointWrapper(best_init=BEST_LOSS, filepath=saved_model, verbose=1, save_best_only=True)
