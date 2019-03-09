@@ -63,7 +63,7 @@ class KerasModel():
             total_ypred = total_ypred+[ypred]
             total_correct += X[ypred.argmax(1) == Y.argmax(1)].shape[0]
             total_size+= X.shape[0]
-            print(total_correct, total_size)
+            # print(total_correct, total_size)
         total_accuracy = float(total_correct/total_size)
         return np.concatenate(total_ypred), None, total_accuracy
     def clear_session(self):
