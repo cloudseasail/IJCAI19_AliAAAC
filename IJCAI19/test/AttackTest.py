@@ -79,7 +79,7 @@ def Score(Yp, targetlabel):
     _, Xadv, Yadv = next(img_loader)
 
     print(X.shape, Xadv.shape, Y.shape, Yadv.shape)
-    score, succ =  calc_score(X, Xadv, Yadv.argmax(1), Yp, target=targetlabel)
+    score, succ =  calc_score(X, Xadv, Yadv.argmax(1), Yp.argmax(1), target=targetlabel)
     print("Mean L2 %.4f,  Score %.4f, Attack Success Rate %.4f" % (calc_l2(X, Xadv), score, succ ))
     return X, Y, Xadv, Yadv
 

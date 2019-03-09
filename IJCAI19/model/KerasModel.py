@@ -49,7 +49,7 @@ class KerasModel():
     def predict_batch(self, X, Y=None):
         X = self.preprocess(X)
         ypred = self.model.predict_on_batch(X)
-        ypred = ypred.argmax(1)
+        # ypred = ypred.argmax(1)
         if Y is not None:
             return ypred, None, None
         else:
@@ -61,7 +61,7 @@ class KerasModel():
         for _,X,Y in generator:
             ypred = self.predict_batch(X)
             total_ypred = total_ypred+[ypred]
-            total_correct += X[ypred == Y.argmax(1)].shape[0]
+            total_correct += X[ypred.argmax(1) == Y.argmax(1)].shape[0]
             total_size+= X.shape[0]
             print(total_correct, total_size)
         total_accuracy = float(total_correct/total_size)

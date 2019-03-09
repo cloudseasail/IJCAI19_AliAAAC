@@ -72,7 +72,8 @@ class BaseModel():
         else:
             op_logits = self.get_endpoints(x, self.nb_classes)['Logits']
             self.op_topk = tf.nn.in_top_k(op_logits, tf.argmax(self.y, 1), TOP_K)
-            self.op_ypred = tf.argmax(op_logits, 1)
+            # self.op_ypred = tf.argmax(op_logits, 1)
+            self.op_ypred = op_logits
         self.op_accuracy = tf.reduce_mean(tf.cast(self.op_topk, tf.float32))
         self.load_weight()
         return self.op_ypred
