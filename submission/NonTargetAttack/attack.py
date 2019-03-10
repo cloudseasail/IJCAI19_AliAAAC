@@ -76,7 +76,7 @@ def main(_):
     # M = FastGradientMethod
     #non targeted with guessed label
     GHOST.shortcut_weight_range = 0.2
-    attack_params = {"ep_ratio": 0.08, "nb_iter": 50, "target":TARGET_ATTACK}
+    attack_params = {"ep_ratio": 0.09, "nb_iter": 10, "target":TARGET_ATTACK}
     attack(M, attack_params, targetlabel=TARGET_ATTACK)
 
     print("done")

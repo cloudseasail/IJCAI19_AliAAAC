@@ -27,7 +27,8 @@ print("=========== Prepare Data Generator =====================")
 sources = {
     'good':{
         'directory': '../../official_data/prepared_train_data/good/',
-        'shuffle_num': 20,
+        # 'shuffle_num': 20,
+        'shuffle_num': 1,
     },
     # 'bad':{
     #     'directory': '../../official_data/prepared_train_data/bad/',
@@ -35,11 +36,13 @@ sources = {
     # },
     'adv':{
         'directory': '../../official_data/prepared_train_data/adv/',
-        'shuffle_num': 1,
+        # 'shuffle_num': 1,
+        'shuffle_num': 2,
     },
     'adv2':{
         'directory': '../../official_data/prepared_train_data/adv2/',
-        'shuffle_num': 1,
+        # 'shuffle_num': 1,
+        'shuffle_num': 2,
     },
 }
 MDG = MultiDataGenerator(sources,  source_names=['adv', 'good', 'adv2'],
@@ -69,7 +72,7 @@ STEPS_PRE_EPOCH = TRAIN_SIZE//BATCH_SIZE
 print('TOTAL_SIZE {0} ,BATCH_SIZE {1}, STEPS_PRE_EPOCH {2},'.format(TOTAL_SIZE, BATCH_SIZE, STEPS_PRE_EPOCH))
 
 #use smaller eoch size to save result more frequently
-_STEPS_PRE_EPOCH = 200
+_STEPS_PRE_EPOCH = 300
 _EPOCH_SIZE = int(EPOCH_SIZE * (STEPS_PRE_EPOCH/_STEPS_PRE_EPOCH))
 EPOCH_INIT = 0
 BEST_LOSS = None
@@ -133,7 +136,7 @@ history = model.fit_generator(
       steps_per_epoch=_STEPS_PRE_EPOCH,
       epochs=_EPOCH_SIZE,
       validation_data=validation_generator,
-      validation_steps= max(_STEPS_PRE_EPOCH*VALIDATION_SPLIT, 30),
+      validation_steps= max(_STEPS_PRE_EPOCH*VALIDATION_SPLIT, 100),
 #       use_multiprocessing=True,
       callbacks = [checkpointer, tensorboard, lrscheduler, lrreducer, csvlogger],
       verbose=1,
