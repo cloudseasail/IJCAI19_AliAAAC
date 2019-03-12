@@ -86,13 +86,23 @@ def main(_):
     #         shear_range=0.05
     )
 
+    name = "keras_xception_19"
+    T11 = RandomDefense(FLAGS.num_classes, name=name)
+    T11.random(
+            msb_max=8, msb_rate=1, 
+            rotation_range=10,
+    #         width_shift_range=0.05,
+    #         height_shift_range=0.05
+    )
+
 
     D = EmbeddedDefenseModel("")
-    D.add_model(T1, weight=1)
-    D.add_model(T2, weight=1)
-    D.add_model(T3, weight=1)
+    # D.add_model(T1, weight=1)
+    # D.add_model(T2, weight=1)
+    # D.add_model(T3, weight=1)
+    D.add_model(T11, weight=1)
 
-    defense(D, repeat=10)
+    defense(D, repeat=1)
 
     print("done")
 

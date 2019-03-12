@@ -43,8 +43,8 @@ class KerasModel():
         imgs = self._input_resize(imgs)
         return self._model['preprocess'](imgs)
     def predict_create_graph(self, batch_shape, use_prob=False, TOP_K=1):
-        if (use_prob):
-            print("Keras Model,  use_prob not implemented!!")
+        if (use_prob == False):
+            print("Keras Model,  use_prob==False not implemented!!")
         pass
     def predict_batch(self, X, Y=None):
         X = self.preprocess(X)
@@ -54,7 +54,7 @@ class KerasModel():
             return ypred, None, None
         else:
             return ypred
-    def evaluate_generator(self, generator, use_prob=False):
+    def evaluate_generator(self, generator, use_prob=True):
         total_ypred = []
         total_correct = 0
         total_size = 0

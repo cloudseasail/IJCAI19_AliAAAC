@@ -18,6 +18,6 @@ docker cp ../official_data/dev_data :/competition
 registry-vpc.cn-hangzhou.aliyuncs.com/haifan_deep/ijcai2019_pilot:d2.2.1
 海帆智能
 
-registry-vpc.cn-shanghai.aliyuncs.com/haifan_deep/ijcai2019:n2.3.8
+registry-vpc.cn-shanghai.aliyuncs.com/haifan_deep/ijcai2019:d2.3.8
 海帆智能
 haifan2019
