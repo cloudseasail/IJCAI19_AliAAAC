@@ -157,6 +157,8 @@ class MultiDataGenerator():
         _len = 0
         for s in self.source_names:
             if s in self.sources:
-                _len += len(self.sources[s]['train_flow'])
-                _len += len(self.sources[s]['valid_flow'])
+                if 'train_flow' in self.sources[s]:
+                    _len += len(self.sources[s]['train_flow'])
+                if 'valid_flow' in self.sources[s]:
+                    _len += len(self.sources[s]['valid_flow'])
         return _len
