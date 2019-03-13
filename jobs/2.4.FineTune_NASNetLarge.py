@@ -7,7 +7,7 @@ sys.path.append("..")
 from IJCAI19.module.EnhancedDataGenerator import MultiDataGenerator
 from IJCAI19.module.utils import * 
 from IJCAI19.module.utils_keras import *
-from IJCAI19.model.KerasModelDef import NASNetLargeFineTune, preprocess_input
+from IJCAI19.model.KerasModelDef import finetune_nasnet_large, preprocess_input
 
 from keras import optimizers
 from keras import callbacks
@@ -106,7 +106,7 @@ if os.path.exists(saved_model):
     model = load_model(saved_model)
     print("loaded pretrained model from ", saved_model)
 else:
-    model = NASNetLargeFineTune('imagenet', (IMAGE_SIZE,IMAGE_SIZE,3), CLASS_SIZE)
+    model = finetune_nasnet_large('imagenet', (IMAGE_SIZE,IMAGE_SIZE,3), CLASS_SIZE)
     EPOCH_INIT = 0
 model.summary()
 

@@ -3,6 +3,7 @@ import numpy as np
 import os
 from keras.models import load_model
 import keras.backend as K
+from cleverhans.utils_keras import KerasModelWrapper
 
 def unify_preprocess(imgs, undo=False):
     if (undo):
@@ -21,13 +22,13 @@ class KerasModel():
 
         }
         self.model = None
-    def get_endpoints(self, x, nb_classes):
-       return None
+        self.cleverhans_model = None
     def load_weight(self, checkpoint_path=''):
        pass
     def _load_model(self, path):
         if os.path.exists(path):
             self.model = load_model(path)
+            self.cleverhans_model = KerasModelWrapper(self.model)
             print("loaded keras model from ", path)
         else:
             print("keras model path not exit", path)
@@ -74,6 +75,10 @@ class KerasModel():
     def reload(self):
         self.clear_session()
         self.model = self._load_model(self.weight_path)
+    def get_logits(self, x, nb_classes):
+        return self.cleverhans_model.get_logits(x)
+    def get_probs(self, x, nb_classes):
+        return self.cleverhans_model.get_probs(x)
 
 
 class factory_keras_xception_19(KerasModel):

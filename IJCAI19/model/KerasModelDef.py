@@ -29,8 +29,33 @@ def XceptionFineTune19(weights=None, input_shape=None, num_classes=None):
         model.load_weights(fine_weight)
     return model
 
+def finetune_xception_19(weights=None, input_shape=None, num_classes=None):
+    base_weright = None
+    fine_weight = None
+    if weights:
+        if weights == 'imagenet':
+            base_weright = weights
+        else:
+            fine_weight = weights
+    xception = Xception(weights=base_weright, include_top=False, input_shape=input_shape)
+    finetune_layer_after = "add_11"
+    trainable = False
+    for layer in xception.layers:
+        if layer.name == finetune_layer_after:
+            trainable = True
+        layer.trainable = trainable
 
-def NASNetLargeFineTune(weights=None, input_shape=None, num_classes=None):
+    _input = xception.input
+    x = xception.output
+    x = layers.GlobalAveragePooling2D(name='final_gap')(x)
+    _output = layers.Dense(num_classes,activation='softmax',kernel_initializer='he_normal', name='final_dense_mapping')(x)
+
+    model = Model(inputs=_input, outputs=_output)
+    if fine_weight:
+        model.load_weights(fine_weight)
+    return model
+
+def finetune_nasnet_large(weights=None, input_shape=None, num_classes=None):
     base_weright = None
     fine_weight = None
     if weights:

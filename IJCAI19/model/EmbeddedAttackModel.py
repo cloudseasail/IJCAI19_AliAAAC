@@ -86,11 +86,11 @@ class AttackModel():
             self.model = ModelFactory.create(name, output_size)
     def get_attack_logits(self, x):
         xp = self.attack_preprocess(x)
-        logits = self.get_endpoints(xp,self.nb_classes)['Logits']
+        logits = self.model.get_logits(xp,self.nb_classes)
         return logits
     def get_attack_probs(self, x):
         xp = self.attack_preprocess(x)
-        probs = self.get_endpoints(xp,self.nb_classes)['Predictions'].op.inputs[0]
+        probs = self.model.get_probs(xp,self.nb_classes)
         return probs
     def predict_preprocess(self, x):
         if self.model:
@@ -101,9 +101,6 @@ class AttackModel():
     def load_weight(self, *arg, **kwargs):
         if self.model:
             return self.model.load_weight(*arg, **kwargs)
-    def get_endpoints(self, *arg, **kwargs):
-        if self.model:
-            return self.model.get_endpoints(*arg, **kwargs)
     def evaluate_generator(self, *arg, **kwargs):
         if self.model:
             return self.model.evaluate_generator(*arg, **kwargs)

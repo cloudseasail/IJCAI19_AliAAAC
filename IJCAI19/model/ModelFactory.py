@@ -10,7 +10,7 @@ from ..module.utils import *
 from ..module.utils_tf import *
 from .KerasModel import *
 
-class BaseModel():
+class SlimBaseModel():
     WEIGHT_DIR = ""
     def __init__(self, name, nb_classes):
         self.name = name
@@ -28,8 +28,12 @@ class BaseModel():
             if 'Predictions' not in end_points:
                 end_points['Predictions'] = layers_lib.softmax(end_points['Logits'], scope='predictions')
         return end_points
+    def get_logits(self, x, nb_classes):
+        return self.get_endpoints(x, nb_classes)['Logits']
+    def get_probs(self, x, nb_classes):
+        return self.get_endpoints(x, nb_classes)['Predictions'].op.inputs[0]
     def _get_weight(self):
-        return BaseModel.WEIGHT_DIR + self._model['checkpoint_dir']
+        return SlimBaseModel.WEIGHT_DIR + self._model['checkpoint_dir']
     def load_weight(self, sess=None, checkpoint_path=''):
         # if self.weight_loaded == False:
         if True:
@@ -151,7 +155,7 @@ def Vgg_preprocess_tf(imgs, undo=False):
     return out_imgs
 
 
-class factory_inception_v1(BaseModel):
+class factory_inception_v1(SlimBaseModel):
     def __init__(self, *arg, **kwargs):
         super().__init__(*arg, **kwargs)
         self._model ={
@@ -162,7 +166,7 @@ class factory_inception_v1(BaseModel):
             'preprocess': Inception_preprocess,
             'default_input_size': 224,
         }
-class factory_resnetv1_50(BaseModel):
+class factory_resnetv1_50(SlimBaseModel):
     def __init__(self, *arg, **kwargs):
         super().__init__(*arg, **kwargs)
         self._model ={
@@ -173,7 +177,7 @@ class factory_resnetv1_50(BaseModel):
             'preprocess': Vgg_preprocess_tf,
             'default_input_size': 224,
         }
-class factory_vgg_16(BaseModel):
+class factory_vgg_16(SlimBaseModel):
     def __init__(self, *arg, **kwargs):
         super().__init__(*arg, **kwargs)
         self._model ={
@@ -207,5 +211,5 @@ class ModelFactory():
     @staticmethod
     def create(name, nb_classes):
         KerasModel.WEIGHT_DIR = ModelFactory.WEIGHT_DIR
-        BaseModel.WEIGHT_DIR = ModelFactory.WEIGHT_DIR
+        SlimBaseModel.WEIGHT_DIR = ModelFactory.WEIGHT_DIR
         return ModelFactory.mapping[name](name, nb_classes)
