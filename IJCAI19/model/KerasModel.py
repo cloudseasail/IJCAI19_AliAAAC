@@ -4,6 +4,7 @@ import os
 from keras.models import load_model
 import keras.backend as K
 from cleverhans.utils_keras import KerasModelWrapper
+from IJCAI19.module.utils_tf import gpu_session_config
 
 def unify_preprocess(imgs, undo=False):
     if (undo):
@@ -21,6 +22,7 @@ class KerasModel():
             'default_input_size': 299,
 
         }
+        self.sess = None
         self.model = None
         self.cleverhans_model = None
     def load_weight(self, sess=None, checkpoint_path=''):
@@ -47,7 +49,7 @@ class KerasModel():
     def preprocess(self, imgs):
         imgs = self._input_resize(imgs)
         return self._model['preprocess'](imgs)
-    def predict_create_graph(self, batch_shape, use_prob=False, TOP_K=1):
+    def predict_create_graph(self, batch_shape=None, use_prob=True, TOP_K=1):
         if (use_prob == False):
             print("Keras Model,  use_prob==False not implemented!!")
         if self.sess:
@@ -69,6 +71,7 @@ class KerasModel():
         total_ypred = []
         total_correct = 0
         total_size = 0
+        self.predict_create_graph()
         for _,X,Y in generator:
             ypred = self.predict_batch(X)
             total_ypred = total_ypred+[ypred]
