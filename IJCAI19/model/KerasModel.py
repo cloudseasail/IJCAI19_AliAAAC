@@ -55,7 +55,7 @@ class KerasModel():
             return ypred, None, None
         else:
             return ypred
-    def evaluate_generator(self, generator, use_prob=True):
+    def evaluate_generator(self, generator, batch_shape=None, use_prob=True):
         total_ypred = []
         total_correct = 0
         total_size = 0
