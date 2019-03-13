@@ -124,11 +124,11 @@ if os.path.exists(saved_log):
 ################################################################
 LR_SCHEULE_TABLE = {
     0: 1e-3,
-    20: 1e-4,
-    60: 1e-5,
-    100: 5e-6,
-    150: 1e-6,
-    200: 1e-7
+    10: 1e-4,
+    30: 1e-5,
+    50: 5e-6,
+    80: 1e-6,
+    100: 1e-7
 }
 def _lr_schedule(epoch, old_lr=1e-3):
     if epoch in LR_SCHEULE_TABLE:
