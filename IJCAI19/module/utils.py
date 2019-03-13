@@ -159,3 +159,6 @@ def remove_with_name(path, pattern):
             os.remove(os.path.join(root,name))
             count +=1
     return count
+
+def global_use_cpu():
+    os.environ['CUDA_VISIBLE_DEVICES'] = '-1'

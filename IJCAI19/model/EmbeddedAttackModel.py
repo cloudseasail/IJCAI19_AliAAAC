@@ -44,13 +44,14 @@ class EmbeddedAttackModel(CleverhansModel):
 
     def attack_generate(self, sess, Method, params):
         self.sess = sess
-        self.op_x = tf.placeholder(dtype=tf.float32, shape=(None, self.batch_shape[1],self.batch_shape[2],self.batch_shape[3]), name='input')
-        self.op_y = tf.placeholder(dtype=tf.float32, shape=(None, self.nb_classes), name='output')
-        params = self.parse_attack_params(params, self.op_y)
-        attacker = Method(self, sess=self.sess)
-        self.op_xadv = attacker.generate(self.op_x, **params)
-        for m in self.models:
-            m.load_weight(sess)
+        with self.sess.as_default():
+            for m in self.models:
+                m.load_weight(self.sess)
+            self.op_x = tf.placeholder(dtype=tf.float32, shape=(None, self.batch_shape[1],self.batch_shape[2],self.batch_shape[3]), name='input')
+            self.op_y = tf.placeholder(dtype=tf.float32, shape=(None, self.nb_classes), name='output')
+            params = self.parse_attack_params(params, self.op_y)
+            attacker = Method(self, sess=self.sess)
+            self.op_xadv = attacker.generate(self.op_x, **params)
         return self.op_xadv 
     def attack_batch(self, X, Y=None):
         xadv = self.sess.run(self.op_xadv, feed_dict={self.op_x: X, self.op_y: Y})

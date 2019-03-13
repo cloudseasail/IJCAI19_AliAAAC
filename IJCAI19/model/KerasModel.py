@@ -23,8 +23,12 @@ class KerasModel():
         }
         self.model = None
         self.cleverhans_model = None
-    def load_weight(self, checkpoint_path=''):
-       pass
+    def load_weight(self, sess=None, checkpoint_path=''):
+        if self.model is None:
+            self._load_model(self.weight_path)
+        else:
+            self.model.load_weights(self.weight_path)
+            print("loaded keras model weights from ", self.weight_path)
     def _load_model(self, path):
         if os.path.exists(path):
             self.model = load_model(path)
@@ -46,10 +50,16 @@ class KerasModel():
     def predict_create_graph(self, batch_shape, use_prob=False, TOP_K=1):
         if (use_prob == False):
             print("Keras Model,  use_prob==False not implemented!!")
-        pass
+        if self.sess:
+            self.clear_session()
+        config = gpu_session_config()
+        self.sess =  tf.Session(config=config)
+        with self.sess.as_default():
+            self.load_weight(self.sess)
     def predict_batch(self, X, Y=None):
-        X = self.preprocess(X)
-        ypred = self.model.predict_on_batch(X)
+        with self.sess.as_default():
+            X = self.preprocess(X)
+            ypred = self.model.predict_on_batch(X)
         # ypred = ypred.argmax(1)
         if Y is not None:
             return ypred, None, None
@@ -68,6 +78,9 @@ class KerasModel():
         total_accuracy = float(total_correct/total_size)
         return np.concatenate(total_ypred), None, total_accuracy
     def clear_session(self):
+        if self.sess:
+            self.sess.close()
+        self.sess = None
         K.clear_session()
         del self.model
         self.model = None
@@ -85,4 +98,5 @@ class factory_keras_xception_19(KerasModel):
     def __init__(self, name, nb_classes):
         super().__init__(name)
         self.weight_path = KerasModel.WEIGHT_DIR + 'xception_19/keras_xception_19.h5'
-        self.model = self._load_model(self.weight_path)
+        #use lazy load weight
+        # self.model = self._load_model(self.weight_path)
