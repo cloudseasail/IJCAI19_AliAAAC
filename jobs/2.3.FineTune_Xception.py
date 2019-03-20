@@ -102,6 +102,7 @@ print('Real _EPOCH_SIZE {0} ,EPOCH_INIT {1}, _STEPS_PRE_EPOCH {2},'.format(_EPOC
 ################################################################
 print("=========== Prepare Model =====================")
 saved_model = 'model/keras_xception_19.h5'
+logged_model = 'logs/keras_xception_19.h5'
 if os.path.exists(saved_model):
     model = load_model(saved_model)
     print("loaded pretrained model from ", saved_model)
@@ -150,6 +151,7 @@ lrreducer = callbacks.ReduceLROnPlateau(monitor='val_loss', patience=5, mode='au
 tensorboard = TensorBoardCallback(None, BATCH_SIZE, "logs/train/")
 # checkpointer = callbacks.ModelCheckpoint(filepath=saved_model, verbose=1, save_best_only=True)
 checkpointer = ModelCheckpointWrapper(best_init=BEST_LOSS, filepath=saved_model, verbose=1, save_best_only=True)
+checkpointer_log = ModelCheckpointWrapper(best_init=BEST_LOSS, filepath=logged_model, verbose=1, save_best_only=True, monitor='loss')
 csvlogger = callbacks.CSVLogger(saved_log, separator=',', append=True)
 history = model.fit_generator(
       train_generator,
@@ -158,7 +160,7 @@ history = model.fit_generator(
       validation_data=validation_generator,
       validation_steps= VALID_STEPS,
 #       use_multiprocessing=True,
-      callbacks = [checkpointer, tensorboard, lrscheduler, lrreducer, csvlogger],
+      callbacks = [checkpointer, tensorboard, lrscheduler, lrreducer, csvlogger, checkpointer_log],
       verbose=1,
       initial_epoch=EPOCH_INIT)
       
