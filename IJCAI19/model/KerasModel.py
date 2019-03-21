@@ -81,12 +81,12 @@ class KerasModel():
         total_accuracy = float(total_correct/total_size)
         return np.concatenate(total_ypred), None, total_accuracy
     def clear_session(self):
-        if self.sess:
-            self.sess.close()
-        self.sess = None
         K.clear_session()
         del self.model
         self.model = None
+        if self.sess:
+            self.sess.close()
+        self.sess = None
         tf.reset_default_graph()
     def reload(self):
         self.clear_session()
@@ -101,5 +101,12 @@ class factory_keras_xception_19(KerasModel):
     def __init__(self, name, nb_classes):
         super().__init__(name)
         self.weight_path = KerasModel.WEIGHT_DIR + 'xception_19/keras_xception_19.h5'
+        #use lazy load weight
+        # self.model = self._load_model(self.weight_path)
+
+class factory_keras_nasnet_large(KerasModel):
+    def __init__(self, name, nb_classes):
+        super().__init__(name)
+        self.weight_path = KerasModel.WEIGHT_DIR + 'nasnet/keras_nasnet_large.h5'
         #use lazy load weight
         # self.model = self._load_model(self.weight_path)

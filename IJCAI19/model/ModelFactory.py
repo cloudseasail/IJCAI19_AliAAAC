@@ -204,7 +204,8 @@ class ModelFactory():
         'resnetv1_50': factory_resnetv1_50,
         'vgg_16': factory_vgg_16,
         'ghost_resnetv1_50': factory_ghost_resnetv1_50,
-        'keras_xception_19': factory_keras_xception_19
+        'keras_xception_19': factory_keras_xception_19,
+        'keras_nasnet_large': factory_keras_nasnet_large,
     }
     def __init__(self):
         pass
