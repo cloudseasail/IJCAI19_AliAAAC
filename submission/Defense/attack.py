@@ -95,12 +95,20 @@ def main(_):
     #         height_shift_range=0.05
     )
 
+    name = "keras_nasnet_large"
+    T12 = RandomDefense(FLAGS.num_classes, name=name)
+    # T12.random(
+    #         msb_max=8, msb_rate=1, 
+    #         rotation_range=10
+    # )
+
 
     D = EmbeddedDefenseModel("")
     # D.add_model(T1, weight=1)
     # D.add_model(T2, weight=1)
     # D.add_model(T3, weight=1)
-    D.add_model(T11, weight=1)
+    # D.add_model(T11, weight=1)
+    D.add_model(T12, weight=1)
 
     defense(D, repeat=1)
 

@@ -1,6 +1,7 @@
 Line ending in run.sh
 sed -i.bak 's/\r$//' run.sh
 
+
 VGA info :
 lspci -vnn | grep VGA -A 12 
 
@@ -18,6 +19,6 @@ docker cp ../official_data/dev_data :/competition
 registry-vpc.cn-hangzhou.aliyuncs.com/haifan_deep/ijcai2019_pilot:d2.2.1
 海帆智能
 
-registry-vpc.cn-shanghai.aliyuncs.com/haifan_deep/ijcai2019:d2.3.8
+registry-vpc.cn-shanghai.aliyuncs.com/haifan_deep/ijcai2019:d2.3.9
 海帆智能
 haifan2019

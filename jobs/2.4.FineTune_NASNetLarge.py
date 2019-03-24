@@ -17,7 +17,7 @@ import csv
 
 IMAGE_SIZE = 299
 CLASS_SIZE = 110
-BATCH_SIZE = 20
+BATCH_SIZE = 15
 VALIDATION_SPLIT = 0
 
 ####################################################
@@ -90,7 +90,7 @@ STEPS_PRE_EPOCH = TRAIN_SIZE//BATCH_SIZE
 print('TOTAL_SIZE {0} ,BATCH_SIZE {1}, STEPS_PRE_EPOCH {2},'.format(TOTAL_SIZE, BATCH_SIZE, STEPS_PRE_EPOCH))
 
 #use smaller eoch size to save result more frequently
-_STEPS_PRE_EPOCH = 200
+_STEPS_PRE_EPOCH = 300
 _EPOCH_SIZE = int(EPOCH_SIZE * (STEPS_PRE_EPOCH/_STEPS_PRE_EPOCH))
 EPOCH_INIT = 0
 BEST_LOSS = None
@@ -125,11 +125,11 @@ if os.path.exists(saved_log):
 ################################################################
 LR_SCHEULE_TABLE = {
     0: 1e-3,
-    10: 1e-4,
-    30: 1e-5,
-    50: 5e-6,
-    80: 1e-6,
-    100: 1e-7
+    50: 1e-4,
+    100: 1e-5,
+    150: 5e-6,
+    200: 1e-6,
+    250: 1e-7
 }
 def _lr_schedule(epoch, old_lr=1e-3):
     if epoch in LR_SCHEULE_TABLE:
@@ -147,7 +147,7 @@ if EPOCH_INIT == 0:
                 metrics=['accuracy'])
 
 lrscheduler = callbacks.LearningRateScheduler(_lr_schedule)
-lrreducer = callbacks.ReduceLROnPlateau(monitor='val_loss', patience=5, mode='auto', min_lr=1e-8)
+lrreducer = callbacks.ReduceLROnPlateau(monitor='val_loss', patience=30, mode='auto', min_lr=1e-7)
 tensorboard = TensorBoardCallback(None, BATCH_SIZE, "logs/train/")
 checkpointer = ModelCheckpointWrapper(best_init=BEST_LOSS, filepath=saved_model, verbose=1, save_best_only=True)
 checkpointer_log = ModelCheckpointWrapper(best_init=BEST_LOSS, filepath=logged_model, verbose=1, save_best_only=True, monitor='loss')

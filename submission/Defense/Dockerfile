@@ -4,6 +4,7 @@ FROM registry.cn-shanghai.aliyuncs.com/haifan_deep/ijcai2019:weight2.3.0
 MAINTAINER cloudseasail
 
 COPY ./IJCAI19/weight/xception_19 /competition/IJCAI19/weight/xception_19
+COPY ./IJCAI19/weight/nasnet /competition/IJCAI19/weight/nasnet
 
 COPY ./IJCAI19/model /competition/IJCAI19/model
 COPY ./IJCAI19/module /competition/IJCAI19/module
