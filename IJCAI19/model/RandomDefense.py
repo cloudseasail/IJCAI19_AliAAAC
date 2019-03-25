@@ -28,7 +28,7 @@ class RandomDefense(DefenseModel):
         self.generator = DefenseDataGenerator(*arg, **kwargs)
     def predict_create_graph(self, *arg, **kwargs):
         if self.generator is None:
-            print("without random_transform")
+            print("RandomDefense without random_transform")
         super().predict_create_graph(*arg, **kwargs)
     def _random_apply(self, x):
         if self.generator is None:
