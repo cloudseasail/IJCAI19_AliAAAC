@@ -18,7 +18,8 @@ def get_gpu_status():
     return r
 
 def gpu_session_config():
-    config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True, 
-            intra_op_parallelism_threads=0, inter_op_parallelism_threads=0)
+    # config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True, 
+    #         intra_op_parallelism_threads=0, inter_op_parallelism_threads=0)
+    config=tf.ConfigProto()
     config.gpu_options.allow_growth = True
     return config
