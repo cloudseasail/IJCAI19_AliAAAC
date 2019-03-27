@@ -5,6 +5,7 @@ from keras.models import load_model
 import keras.backend as K
 from cleverhans.utils_keras import KerasModelWrapper
 from IJCAI19.module.utils_tf import gpu_session_config
+from IJCAI19.module.utils import *
 
 def unify_preprocess(imgs, undo=False):
     if (undo):
@@ -71,6 +72,7 @@ class KerasModel():
         total_ypred = []
         total_correct = 0
         total_size = 0
+        p=Profile(self.name + 'evaluate_generator ')
         self.predict_create_graph()
         for _,X,Y in generator:
             ypred = self.predict_batch(X)
@@ -79,6 +81,7 @@ class KerasModel():
             total_size+= X.shape[0]
             # print(total_correct, total_size)
         total_accuracy = float(total_correct/total_size)
+        p.stop()
         return np.concatenate(total_ypred), None, total_accuracy
     def clear_session(self):
         K.clear_session()

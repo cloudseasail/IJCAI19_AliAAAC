@@ -3,3 +3,4 @@ keras
 jupyter
 pandas
 adversarial-robustness-toolbox
+pillow
